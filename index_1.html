@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Beth & Taka — A Love Story in the Stars</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Quicksand:wght@300;400;500&family=Dancing+Script:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;1,400&family=Sacramento&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --gold:#ffd700;--cyan:#7df4ff;--rose:#ff7eb3;--violet:#b47fff;
+  --green:#7fffc4;--orange:#ffaa44;--mint:#a8ffdb;
+  --glass:rgba(5,5,20,.84);--glass2:rgba(8,8,28,.76);
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);
+  --accent-col:#ff7eb3;
+  --line-r:.49;--line-g:.8;--line-b:1.0;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;
+  font-family:'Quicksand',sans-serif;touch-action:none;user-select:none}
+canvas{display:block;touch-action:none}
+#canvas-container{position:fixed;inset:0;z-index:1}
+#fx-canvas{position:fixed;inset:0;z-index:6;pointer-events:none}
+#mp-canvas{position:fixed;inset:0;z-index:7;pointer-events:none}
+#shooting-stars{position:fixed;inset:0;z-index:5;pointer-events:none}
+.ui{position:fixed;z-index:10;pointer-events:none}
+.clickable{pointer-events:auto}
+.glass{background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid var(--border);box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.glow-rose{text-shadow:0 0 20px rgba(255,126,179,.7),0 0 40px rgba(255,126,179,.3)}
+.glow-gold{text-shadow:0 0 20px rgba(255,215,0,.6),0 0 40px rgba(255,215,0,.25)}
+/* HEADER */
+#header{top:0;left:0;right:0;padding:12px 18px;display:flex;justify-content:space-between;align-items:center}
+#logo{display:flex;align-items:center;gap:10px}
+#logo-orb{width:38px;height:38px;border-radius:50%;background:conic-gradient(#ff7eb3,#ffd700,#b47fff,#ff7eb3);display:flex;align-items:center;justify-content:center;box-shadow:0 0 22px rgba(255,126,179,.5);animation:orbPulse 4s ease-in-out infinite;pointer-events:auto;cursor:pointer}
+@keyframes orbPulse{0%,100%{box-shadow:0 0 22px rgba(255,126,179,.5)}50%{box-shadow:0 0 40px rgba(255,126,179,.9),0 0 80px rgba(255,215,0,.2)}}
+#logo-title{font-family:'Dancing Script',cursive;font-size:22px;letter-spacing:.03em}
+#logo-sub{font-size:9px;color:rgba(255,200,220,.55);letter-spacing:.08em;margin-top:1px}
+#header-right{display:flex;gap:7px;pointer-events:auto}
+/* TOOLBAR */
+#toolbar{left:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px}
+@media(max-width:600px){#toolbar{display:none}}
+.tool-btn{pointer-events:auto;width:46px;height:46px;border-radius:12px;border:1px solid var(--border);background:rgba(8,8,32,.74);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative}
+.tool-btn::after{content:attr(data-tip);position:absolute;left:54px;background:rgba(4,4,18,.96);border:1px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .16s;color:#ccb;z-index:20}
+.tool-btn:hover::after{opacity:1}
+.tool-btn:hover{border-color:rgba(255,126,179,.45);transform:translateX(3px)}
+.tool-btn.active{border-color:var(--accent-col);background:rgba(255,126,179,.12);box-shadow:0 0 18px rgba(255,126,179,.3)}
+.tool-btn svg{width:19px;height:19px;stroke:rgba(220,180,200,.8);fill:none;stroke-width:1.8}
+.tool-btn.active svg{stroke:var(--accent-col)}
+.tool-sep{height:1px;background:var(--border);margin:1px 0}
+/* STORY PANEL */
+#story-panel{right:14px;top:68px;bottom:68px;width:285px;border-radius:18px;display:flex;flex-direction:column;pointer-events:auto;overflow:hidden;animation:slideInRight .5s ease}
+@media(max-width:700px){#story-panel{width:232px;right:7px;top:62px;bottom:118px}}
+@keyframes slideInRight{from{transform:translateX(28px);opacity:0}to{transform:translateX(0);opacity:1}}
+#story-hdr{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+#story-hdr-row{display:flex;align-items:center;justify-content:space-between}
+#story-hdr-title{font-family:'Dancing Script',cursive;font-size:16px;color:var(--rose)}
+#story-count{font-size:9px;background:rgba(255,126,179,.14);border:1px solid rgba(255,126,179,.28);color:var(--rose);padding:2px 8px;border-radius:10px}
+#story-hdr-sub{font-size:9px;color:rgba(200,160,180,.5);margin-top:3px;letter-spacing:.05em}
+#story-list{flex:1;overflow-y:auto;padding:9px;display:flex;flex-direction:column;gap:8px}
+#story-list::-webkit-scrollbar{width:3px}
+#story-list::-webkit-scrollbar-thumb{background:rgba(255,126,179,.22);border-radius:2px}
+.story-empty{text-align:center;padding:28px 12px;color:rgba(200,170,185,.32)}
+.emp-icon{font-size:36px;display:block;margin:0 auto 10px;animation:heartBeat 2.2s ease-in-out infinite}
+@keyframes heartBeat{0%,100%{transform:scale(1)}30%{transform:scale(1.22)}60%{transform:scale(.96)}}
+.story-empty p{font-size:11px;line-height:1.7;font-family:'Cormorant Garamond',serif;font-style:italic}
+.story-card{background:rgba(255,255,255,.034);border:1px solid rgba(255,150,190,.12);border-radius:12px;padding:11px;animation:cardIn .38s ease;flex-shrink:0}
+@keyframes cardIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.sc-header{display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.sc-dot{width:5px;height:5px;border-radius:50%;background:var(--rose);box-shadow:0 0 5px var(--rose);flex-shrink:0}
+.sc-title-text{font-size:10px;color:var(--rose);font-family:'Cinzel',serif;flex:1}
+.sc-star-emoji{font-size:13px}
+.sc-text{font-size:12.5px;font-style:italic;line-height:1.72;color:rgba(255,240,248,.88)}
+.sc-chain{font-size:9px;color:rgba(255,255,255,.16);margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.05)}
+#story-footer{padding:9px 11px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:6px}
+#gen-btn{flex:1;padding:8px;border-radius:10px;border:1px solid rgba(255,126,179,.28);background:rgba(255,126,179,.08);color:var(--rose);font-family:'Quicksand',sans-serif;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
+#gen-btn:hover:not(:disabled){background:rgba(255,126,179,.18);box-shadow:0 0 18px rgba(255,126,179,.2)}
+#gen-btn:disabled{opacity:.35;cursor:not-allowed}
+#rand-btn{padding:8px 11px;border-radius:10px;border:1px solid rgba(255,215,0,.22);background:rgba(255,215,0,.06);color:var(--gold);font-size:13px;cursor:pointer;transition:all .2s}
+#rand-btn:hover{background:rgba(255,215,0,.14)}
+/* MP PANEL */
+#mp-panel{left:68px;top:50%;transform:translateY(-50%);width:268px;border-radius:15px;pointer-events:auto;overflow:hidden;display:none}
+@media(max-width:600px){#mp-panel{left:6px;top:70px;transform:none;width:calc(100vw - 12px);max-width:295px}}
+#mp-panel.visible{display:block;animation:slideInLeft .4s ease}
+@keyframes slideInLeft{from{transform:translateY(-50%) translateX(-18px);opacity:0}to{transform:translateY(-50%) translateX(0);opacity:1}}
+#mp-hdr{padding:11px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px}
+#mp-hdr-title{font-family:'Cinzel',serif;font-size:12px;color:var(--violet);flex:1}
+#mp-status-dot{width:8px;height:8px;border-radius:50%;background:#555;flex-shrink:0;transition:all .3s}
+#mp-status-dot.online{background:#7fffc4;box-shadow:0 0 8px #7fffc4}
+#mp-status-dot.connecting{background:var(--orange);box-shadow:0 0 8px var(--orange);animation:sPulse .8s ease-in-out infinite}
+@keyframes sPulse{0%,100%{opacity:1}50%{opacity:.35}}
+#mp-room-section{padding:9px 13px;border-bottom:1px solid var(--border)}
+#mp-room-label{font-size:8px;color:rgba(150,180,220,.5);letter-spacing:.07em;margin-bottom:4px}
+#mp-room-row{display:flex;gap:5px;align-items:center}
+#mp-room-code{flex:1;font-family:'Cinzel',serif;font-size:15px;color:#fff;letter-spacing:.18em;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:6px 8px;text-align:center}
+.mp-btn-sm{padding:6px 9px;border-radius:7px;border:1px solid var(--border2);background:rgba(255,255,255,.06);font-size:10px;cursor:pointer;color:rgba(200,220,255,.78);transition:all .16s;font-family:'Quicksand',sans-serif}
+.mp-btn-sm:hover{background:rgba(255,255,255,.12);color:#fff}
+#mp-join-row{display:flex;gap:5px;margin-top:6px}
+#mp-join-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:6px 9px;color:#fff;font-family:'Quicksand',sans-serif;font-size:11px}
+#mp-join-input:focus{outline:none;border-color:rgba(180,127,255,.5)}
+#mp-join-input::placeholder{color:rgba(255,255,255,.26)}
+#mp-players,#mp-activity{padding:7px 13px}
+#mp-players{border-bottom:1px solid var(--border)}
+.mp-section-title{font-size:8px;color:rgba(150,180,220,.45);letter-spacing:.07em;margin-bottom:5px}
+#mp-players-list{display:flex;flex-direction:column;gap:4px;max-height:90px;overflow-y:auto}
+#mp-activity{max-height:120px;overflow-y:auto}
+.mp-player-item{display:flex;align-items:center;gap:6px;padding:3px 0}
+.mp-player-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mp-player-name{font-size:11px;color:rgba(215,225,250,.85)}
+.mp-player-you{font-size:8px;color:rgba(255,255,255,.28);margin-left:auto}
+.mp-act-item{display:flex;align-items:flex-start;gap:5px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.03);margin-bottom:2px;animation:actIn .3s ease}
+@keyframes actIn{from{opacity:0;transform:translateX(-7px)}to{opacity:1;transform:translateX(0)}}
+.mp-act-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.mp-act-text{font-size:9px;color:rgba(195,210,235,.65);line-height:1.4}
+.mp-act-time{font-size:8px;color:rgba(255,255,255,.2);margin-left:auto;flex-shrink:0}
+/* BOTTOM BAR */
+#bottom-bar{bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:5px;align-items:center;white-space:nowrap}
+@media(max-width:600px){#bottom-bar{display:none}}
+.bar-btn{pointer-events:auto;padding:6px 12px;border-radius:18px;border:1px solid var(--border);background:rgba(5,5,20,.84);backdrop-filter:blur(13px);font-size:10px;color:rgba(220,190,205,.72);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .16s;font-family:'Quicksand',sans-serif}
+.bar-btn:hover{border-color:rgba(255,126,179,.38);color:#fff;transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.bar-btn svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2}
+.bar-btn.mp-active{border-color:rgba(180,127,255,.5);color:var(--violet);background:rgba(180,127,255,.1)}
+/* MOBILE TOOLBAR */
+#mobile-toolbar{display:none;position:fixed;top:0;left:0;right:0;z-index:12;background:rgba(5,5,20,.92);backdrop-filter:blur(15px);border-bottom:1px solid var(--border);padding:9px 10px;align-items:center;gap:7px;overflow-x:auto}
+@media(max-width:600px){#mobile-toolbar{display:flex}}
+.mob-tool{flex-shrink:0;width:42px;height:42px;border-radius:11px;border:1px solid var(--border);background:rgba(14,14,38,.7);display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;transition:all .18s}
+.mob-tool svg{width:19px;height:19px;stroke:rgba(220,180,200,.72);fill:none;stroke-width:1.8}
+.mob-tool.active{border-color:var(--accent-col);background:rgba(255,126,179,.13)}
+.mob-tool.active svg{stroke:var(--accent-col)}
+.mob-sep{width:1px;height:28px;background:var(--border);flex-shrink:0;margin:0 1px}
+#mob-room-btn{flex-shrink:0;padding:6px 12px;border-radius:18px;border:1px solid rgba(180,127,255,.32);background:rgba(180,127,255,.1);color:var(--violet);font-size:10px;cursor:pointer;pointer-events:auto;font-family:'Quicksand',sans-serif;white-space:nowrap}
+/* JOYSTICK */
+#joy-zone{display:none;position:fixed;bottom:0;left:0;width:50%;height:210px;z-index:11;pointer-events:auto}
+#joy-pad{display:none;position:fixed;bottom:0;right:0;width:50%;height:210px;z-index:11;pointer-events:auto}
+@media(max-width:600px){#joy-zone{display:block}#joy-pad{display:block}}
+#joystick{position:absolute;bottom:50px;left:58px;width:96px;height:96px;border-radius:50%;border:2px solid rgba(255,126,179,.2);background:rgba(255,126,179,.04);backdrop-filter:blur(8px);transition:border-color .2s}
+#joystick-knob{width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(255,180,200,.32),rgba(200,140,180,.12));border:1px solid rgba(255,150,180,.28);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+#joy-label,#pad-label{position:absolute;bottom:12px;font-size:8px;color:rgba(255,200,220,.25);letter-spacing:.06em;white-space:nowrap}
+#joy-label{left:50%;transform:translateX(-50%)}
+#pad-label{right:50%;transform:translateX(50%)}
+#mob-action-bar{display:none;position:fixed;bottom:0;left:0;right:0;height:58px;z-index:13;background:rgba(5,5,20,.92);backdrop-filter:blur(13px);border-top:1px solid var(--border);align-items:center;justify-content:center;gap:8px;padding:0 14px}
+@media(max-width:600px){#mob-action-bar{display:flex}}
+.mob-action-btn{flex:1;max-width:120px;padding:7px;border-radius:11px;border:1px solid var(--border2);background:rgba(255,255,255,.05);font-size:10px;color:rgba(220,195,210,.78);cursor:pointer;pointer-events:auto;text-align:center;font-family:'Quicksand',sans-serif;transition:all .16s}
+.mob-action-btn.primary{border-color:rgba(255,126,179,.32);background:rgba(255,126,179,.09);color:var(--rose)}
+/* HUD */
+#chain-hud{position:fixed;bottom:54px;left:50%;transform:translateX(-50%) translateY(10px);z-index:15;background:rgba(4,4,18,.92);border:1px solid rgba(255,150,200,.24);border-radius:26px;padding:6px 16px;font-size:10px;color:var(--rose);letter-spacing:.05em;backdrop-filter:blur(13px);pointer-events:none;transition:opacity .32s,transform .32s;opacity:0}
+#chain-hud.vis{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:600px){#chain-hud{bottom:125px}}
+#tooltip{position:fixed;z-index:20;background:rgba(4,4,18,.97);border:1px solid rgba(255,180,200,.24);border-radius:10px;padding:7px 12px;pointer-events:none;opacity:0;transition:opacity .16s;max-width:175px}
+#tooltip.vis{opacity:1}
+#tt-name{font-family:'Dancing Script',cursive;font-size:14px;color:var(--rose);margin-bottom:2px}
+#tt-msg{font-size:10px;color:rgba(220,195,215,.62);line-height:1.4}
+/* MODALS */
+.modal-bg{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(0,0,10,.78);backdrop-filter:blur(10px)}
+.modal-bg.open{display:flex}
+.modal-box{border-radius:20px;padding:20px;width:355px;max-width:93vw;animation:modalIn .26s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.91)}to{opacity:1;transform:scale(1)}}
+.m-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.m-title{font-family:'Dancing Script',cursive;font-size:18px;color:var(--gold)}
+.m-close{background:none;border:none;color:rgba(255,255,255,.32);cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:all .14s}
+.m-close:hover{color:#fff;background:rgba(255,255,255,.08)}
+.m-close svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.f-label{font-size:9px;color:rgba(200,170,190,.72);margin-bottom:4px;letter-spacing:.05em}
+.f-input{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:8px 11px;color:#fff;font-family:'Quicksand',sans-serif;font-size:12px;margin-bottom:11px;transition:border-color .16s}
+.f-input:focus{outline:none;border-color:rgba(255,150,200,.42)}
+.f-row{display:flex;gap:6px;margin-top:3px}
+.btn-rose{flex:1;padding:8px;border-radius:9px;border:1px solid rgba(255,126,179,.3);background:rgba(255,126,179,.1);color:var(--rose);font-family:'Quicksand',sans-serif;font-size:11px;cursor:pointer;transition:all .16s}
+.btn-rose:hover{background:rgba(255,126,179,.2)}
+.btn-gold{flex:1;padding:8px;border-radius:9px;border:1px solid rgba(255,215,0,.28);background:rgba(255,215,0,.09);color:var(--gold);font-family:'Quicksand',sans-serif;font-size:11px;cursor:pointer;transition:all .16s}
+.btn-gold:hover{background:rgba(255,215,0,.18)}
+.btn-red{padding:8px 12px;border-radius:9px;border:1px solid rgba(255,80,80,.26);background:rgba(255,80,80,.07);color:rgba(255,125,125,.88);font-size:11px;cursor:pointer;font-family:'Quicksand',sans-serif}
+/* Emoji picker */
+.emoji-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:11px}
+.emoji-opt{font-size:18px;cursor:pointer;padding:4px;border-radius:7px;border:2px solid transparent;transition:all .14s}
+.emoji-opt:hover,.emoji-opt.picked{border-color:rgba(255,215,0,.5);background:rgba(255,215,0,.1);transform:scale(1.18)}
+/* Color picker */
+.color-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+.col-opt{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .14s}
+.col-opt:hover,.col-opt.picked{border-color:#fff;transform:scale(1.25)}
+/* Search */
+#search-results{max-height:150px;overflow-y:auto}
+.sr-item{padding:7px 9px;border-radius:7px;cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);margin-bottom:4px;transition:all .13s}
+.sr-item:hover{background:rgba(255,150,190,.08);border-color:rgba(255,150,190,.25)}
+.sr-name{font-size:12px;color:#eef;margin-bottom:1px}
+.sr-msg{font-size:10px;color:rgba(200,170,185,.42)}
+/* Customize modal */
+.font-row{display:flex;flex-direction:column;gap:5px;margin-bottom:11px}
+.font-opt{padding:8px 11px;border-radius:8px;border:1px solid var(--border2);background:rgba(255,255,255,.04);cursor:pointer;font-size:13px;transition:all .14s;display:flex;align-items:center;justify-content:space-between}
+.font-opt:hover{border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.07)}
+.font-opt.active{border-color:var(--rose);background:rgba(255,126,179,.09)}
+.font-opt small{font-size:9px;color:rgba(255,255,255,.3)}
+.theme-row{display:flex;gap:7px;margin-bottom:11px;flex-wrap:wrap}
+.theme-swatch{width:36px;height:36px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:all .14s;display:flex;align-items:center;justify-content:center;font-size:14px}
+.theme-swatch:hover,.theme-swatch.active{border-color:#fff;transform:scale(1.15)}
+.line-row{display:flex;gap:6px;margin-bottom:11px;flex-wrap:wrap}
+.line-opt{padding:5px 10px;border-radius:14px;cursor:pointer;border:1px solid var(--border2);background:rgba(255,255,255,.05);font-size:10px;transition:all .14s}
+.line-opt:hover,.line-opt.active{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.12)}
+/* Gallery */
+#gallery-list{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.gallery-item{padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(120,200,255,.12);cursor:pointer;transition:all .13s;display:flex;align-items:center;gap:8px}
+.gallery-item:hover{background:rgba(120,200,255,.08);border-color:rgba(120,200,255,.28)}
+.gallery-name{font-family:'Cinzel',serif;font-size:11px;color:var(--cyan);flex:1}
+.gallery-del{font-size:11px;cursor:pointer;color:rgba(255,80,80,.5);padding:2px}
+.gallery-del:hover{color:rgba(255,80,80,.9)}
+/* Intro */
+#intro{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:rgba(0,0,10,.94);backdrop-filter:blur(14px)}
+#intro-box{border-radius:24px;padding:32px;max-width:530px;width:93%;text-align:center;animation:modalIn .5s ease}
+#intro-names{font-family:'Dancing Script',cursive;font-size:32px;font-weight:700;margin-bottom:5px}
+#intro-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:rgba(255,200,230,.65);margin-bottom:24px}
+.i-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:20px;text-align:left}
+.i-card{border-radius:10px;padding:11px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+.i-card-h{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.i-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.i-card-h span{font-size:11px;font-weight:600;color:#eef}
+.i-card p{font-size:9px;color:rgba(200,175,185,.5);line-height:1.55}
+#name-row{display:flex;gap:8px;margin-bottom:16px}
+.name-inp{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,200,220,.2);border-radius:9px;padding:8px 10px;color:#fff;font-family:'Dancing Script',cursive;font-size:15px;text-align:center}
+.name-inp:focus{outline:none;border-color:rgba(255,126,179,.45)}
+.name-inp::placeholder{color:rgba(255,255,255,.28);font-family:'Quicksand',sans-serif;font-size:11px}
+#start-btn{padding:11px 44px;border-radius:26px;border:1px solid rgba(255,126,179,.4);background:rgba(255,126,179,.1);color:var(--rose);font-family:'Dancing Script',cursive;font-size:18px;cursor:pointer;transition:all .26s;box-shadow:0 0 26px rgba(255,126,179,.12)}
+#start-btn:hover{background:rgba(255,126,179,.22);box-shadow:0 0 46px rgba(255,126,179,.3);transform:scale(1.05)}
+/* Shooting stars */
+.sstar{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(255,200,220,.85),transparent);border-radius:1px;animation:sshoot var(--d,3s) var(--dl,0s) linear forwards;opacity:0}
+@keyframes sshoot{0%{transform:translateX(0) translateY(0) rotate(var(--a,-28deg));opacity:0;width:0}8%{opacity:1}80%{opacity:.65}100%{transform:translateX(var(--dx,500px)) translateY(var(--dy,250px)) rotate(var(--a,-28deg));opacity:0;width:var(--l,120px)}}
+/* Toasts */
+.toast-el{position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:80;background:rgba(4,4,18,.95);border:1px solid var(--tb,rgba(255,150,200,.28));border-radius:26px;padding:6px 18px;font-size:10px;color:var(--tc,var(--rose));backdrop-filter:blur(13px);pointer-events:none;animation:tIn .23s ease,tOut .38s ease 2.5s forwards;white-space:nowrap}
+@keyframes tIn{from{opacity:0;transform:translateX(-50%) translateY(-9px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tOut{to{opacity:0;transform:translateX(-50%) translateY(-9px)}}
+/* Floating hearts */
+.amb-heart{position:fixed;pointer-events:none;z-index:3;font-size:16px;opacity:0;animation:floatHeart var(--dur,8s) var(--del,0s) ease-in forwards}
+@keyframes floatHeart{0%{transform:translateX(0) translateY(0) rotate(0);opacity:0}10%{opacity:.55}90%{opacity:.1}100%{transform:translateX(var(--sx,30px)) translateY(-110vh) rotate(var(--rot,20deg));opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite;display:inline-block}
+</style>
+</head>
+<body>
+<div id="canvas-container"></div>
+<div id="shooting-stars"></div>
+<canvas id="fx-canvas"></canvas>
+<canvas id="mp-canvas"></canvas>
+<div id="chain-hud">♡ tap any star to weave a story</div>
+<div id="tooltip"><div id="tt-name"></div><div id="tt-msg"></div></div>
+
+<!-- HEADER -->
+<header class="ui" id="header">
+  <div id="logo">
+    <div id="logo-orb" onclick="document.getElementById('custom-modal').classList.add('open')">💫</div>
+    <div>
+      <div id="logo-title" class="glow-rose">Beth &amp; Taka</div>
+      <div id="logo-sub">A LOVE STORY IN THE STARS</div>
+    </div>
+  </div>
+  <div id="header-right">
+    <button class="bar-btn clickable" id="btn-mp-toggle" style="border-color:rgba(180,127,255,.32);color:var(--violet)">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M9 7a4 4 0 110 8 4 4 0 010-8z"/></svg>Together
+    </button>
+    <button class="bar-btn clickable" id="btn-custom">✨ Style</button>
+    <button class="bar-btn clickable" id="btn-help">? Help</button>
+  </div>
+</header>
+
+<!-- DESKTOP TOOLBAR -->
+<div class="ui" id="toolbar">
+  <button class="tool-btn active" data-tool="select" data-tip="Select & Chain">
+    <svg viewBox="0 0 24 24"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/></svg></button>
+  <button class="tool-btn" data-tool="add" data-tip="Add Star">
+    <svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></button>
+  <button class="tool-btn" data-tool="connect" data-tip="Connect Stars">
+    <svg viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg></button>
+  <button class="tool-btn" data-tool="move" data-tip="Move Star">
+    <svg viewBox="0 0 24 24"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg></button>
+  <button class="tool-btn" data-tool="delete" data-tip="Remove Star">
+    <svg viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+  <div class="tool-sep"></div>
+  <button class="tool-btn" data-tool="timeline" data-tip="Timeline Mode">
+    <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>
+  <button class="tool-btn" data-tool="heart" data-tip="Heart Formation ♡">
+    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button>
+  <button class="tool-btn" data-tool="gallery" data-tip="Constellation Gallery">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
+  <button class="tool-btn" data-tool="reset" data-tip="Reset Camera">
+    <svg viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button>
+</div>
+
+<!-- STORY PANEL -->
+<aside class="ui glass" id="story-panel">
+  <div id="story-hdr">
+    <div id="story-hdr-row"><div id="story-hdr-title">♡ Beth &amp; Taka</div><div id="story-count">0 chapters</div></div>
+    <div id="story-hdr-sub">TAP ANY STAR · GENERATE STORY</div>
+  </div>
+  <div id="story-list">
+    <div class="story-empty">
+      <span class="emp-icon">💫</span>
+      <p>Tap any star in the sky, then press <em>Generate Story</em> to conjure a chapter from Beth &amp; Taka's love story written across the cosmos</p>
+    </div>
+  </div>
+  <div id="story-footer">
+    <button id="gen-btn" class="clickable">♡ Generate Story</button>
+    <button id="rand-btn" class="clickable" title="Random story">✦</button>
+  </div>
+</aside>
+
+<!-- MULTIPLAYER PANEL -->
+<aside class="ui glass" id="mp-panel">
+  <div id="mp-hdr"><div id="mp-hdr-title">✦ Together</div><div id="mp-status-dot"></div></div>
+  <div id="mp-room-section">
+    <div id="mp-room-label">YOUR ROOM CODE</div>
+    <div id="mp-room-row">
+      <div id="mp-room-code">——————</div>
+      <button class="mp-btn-sm clickable" id="btn-copy-room">Copy</button>
+      <button class="mp-btn-sm clickable" id="btn-new-room">New</button>
+    </div>
+    <div id="mp-join-row">
+      <input id="mp-join-input" placeholder="Enter code to join…" maxlength="6">
+      <button class="mp-btn-sm clickable" id="btn-join-room" style="background:rgba(180,127,255,.14);border-color:rgba(180,127,255,.32);color:var(--violet)">Join</button>
+    </div>
+  </div>
+  <div id="mp-players"><div class="mp-section-title">CONNECTED</div><div id="mp-players-list"></div></div>
+  <div id="mp-activity"><div class="mp-section-title">LIVE</div><div id="mp-activity-list"></div></div>
+</aside>
+
+<!-- BOTTOM BAR -->
+<div class="ui" id="bottom-bar">
+  <button class="bar-btn clickable" id="btn-clear">✕ Clear</button>
+  <button class="bar-btn clickable" id="btn-save">💾 Save</button>
+  <button class="bar-btn clickable" id="btn-export">🖼 Export</button>
+  <button class="bar-btn clickable" id="btn-search">🔍 Find</button>
+  <button class="bar-btn clickable" id="btn-ambient">💕 Hearts</button>
+  <button class="bar-btn clickable" id="btn-name-cst">✦ Name</button>
+  <button class="bar-btn clickable" id="btn-suggest">💡 Inspire</button>
+</div>
+
+<!-- MOBILE TOOLBAR -->
+<div id="mobile-toolbar">
+  <button class="mob-tool active" data-tool="select"><svg viewBox="0 0 24 24"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/></svg></button>
+  <button class="mob-tool" data-tool="add"><svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></button>
+  <button class="mob-tool" data-tool="connect"><svg viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg></button>
+  <button class="mob-tool" data-tool="move"><svg viewBox="0 0 24 24"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg></button>
+  <button class="mob-tool" data-tool="delete"><svg viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+  <div class="mob-sep"></div>
+  <button id="mob-room-btn" class="clickable">🌌 Room</button>
+</div>
+<div id="joy-zone"><div id="joystick"><div id="joystick-knob"></div></div><div id="joy-label">MOVE</div></div>
+<div id="joy-pad"><div id="pad-label">LOOK</div></div>
+<div id="mob-action-bar">
+  <button class="mob-action-btn primary clickable" id="mob-gen-btn">♡ Story</button>
+  <button class="mob-action-btn clickable" id="mob-clear-btn">Clear</button>
+  <button class="mob-action-btn clickable" id="mob-custom-btn">✨ Style</button>
+</div>
+
+<!-- STAR MODAL -->
+<div class="modal-bg" id="star-modal">
+  <div class="modal-box glass">
+    <div class="m-head"><div class="m-title">✦ Star Memory</div><button class="m-close" id="close-star-modal"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="f-label">STAR NAME</div><input id="star-name" class="f-input" placeholder="Name this star…">
+    <div class="f-label">MEMORY</div><textarea id="star-msg" class="f-input" rows="3" placeholder="What memory does this star hold?" style="resize:none"></textarea>
+    <div class="f-label">DATE</div><input id="star-date" class="f-input" type="date">
+    <div class="f-label">EMOJI BADGE</div>
+    <div class="emoji-row" id="emoji-picker">
+      <span class="emoji-opt" data-e="">—</span><span class="emoji-opt" data-e="💫">💫</span><span class="emoji-opt" data-e="🌟">🌟</span>
+      <span class="emoji-opt" data-e="💖">💖</span><span class="emoji-opt" data-e="🌙">🌙</span><span class="emoji-opt" data-e="✨">✨</span>
+      <span class="emoji-opt" data-e="🦋">🦋</span><span class="emoji-opt" data-e="🌸">🌸</span><span class="emoji-opt" data-e="🔮">🔮</span>
+      <span class="emoji-opt" data-e="💌">💌</span><span class="emoji-opt" data-e="🎵">🎵</span><span class="emoji-opt" data-e="🌺">🌺</span>
+    </div>
+    <div class="f-label">STAR COLOUR</div>
+    <div class="color-row" id="star-color-picker">
+      <div class="col-opt" data-c="1,1,1" style="background:#fff"></div>
+      <div class="col-opt" data-c="1,.85,0" style="background:#ffd700"></div>
+      <div class="col-opt" data-c="1,.46,.74" style="background:#ff76bd"></div>
+      <div class="col-opt" data-c=".49,.8,1" style="background:#7dccff"></div>
+      <div class="col-opt" data-c=".56,1,.78" style="background:#8fffc7"></div>
+      <div class="col-opt" data-c=".7,.46,1" style="background:#b376ff"></div>
+      <div class="col-opt" data-c="1,.55,.22" style="background:#ff8c38"></div>
+      <div class="col-opt" data-c=".95,.85,1" style="background:#f2d9ff"></div>
+      <div class="col-opt" data-c=".3,.9,.9" style="background:#4de6e6"></div>
+      <div class="col-opt" data-c="1,.85,.5" style="background:#ffd980"></div>
+    </div>
+    <div class="f-row">
+      <button class="btn-rose clickable" id="save-star-btn">Save ♡</button>
+      <button class="btn-red clickable" id="delete-star-btn">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH MODAL -->
+<div class="modal-bg" id="search-modal">
+  <div class="modal-box glass">
+    <div class="m-head"><div class="m-title">✦ Find a Star</div><button class="m-close" id="close-search-modal"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <input id="search-input" class="f-input" placeholder="Search by name or memory…" style="margin-bottom:9px">
+    <div id="search-results"></div>
+  </div>
+</div>
+
+<!-- CUSTOMISE MODAL -->
+<div class="modal-bg" id="custom-modal">
+  <div class="modal-box glass" style="max-width:380px">
+    <div class="m-head"><div class="m-title">✨ Customise</div><button class="m-close" id="close-custom-modal"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="f-label">FONT STYLE</div>
+    <div class="font-row" id="font-picker">
+      <div class="font-opt active" data-font="Quicksand" style="font-family:'Quicksand'">Quicksand <small>clean & modern</small></div>
+      <div class="font-opt" data-font="Dancing Script" style="font-family:'Dancing Script'">Dancing Script <small>playful & cute</small></div>
+      <div class="font-opt" data-font="Cinzel" style="font-family:'Cinzel'">Cinzel <small>elegant serif</small></div>
+      <div class="font-opt" data-font="Cormorant Garamond" style="font-family:'Cormorant Garamond';font-style:italic">Cormorant Garamond <small>romantic italic</small></div>
+      <div class="font-opt" data-font="Playfair Display" style="font-family:'Playfair Display'">Playfair Display <small>classic luxury</small></div>
+      <div class="font-opt" data-font="Sacramento" style="font-family:'Sacramento'">Sacramento <small>dreamy script</small></div>
+    </div>
+    <div class="f-label">SKY THEME</div>
+    <div class="theme-row" id="theme-picker">
+      <div class="theme-swatch active" data-theme="deep" style="background:radial-gradient(circle,#0a0020,#000)" title="Deep Space">🌌</div>
+      <div class="theme-swatch" data-theme="rose" style="background:radial-gradient(circle,#200015,#080000)" title="Rose Nebula">🌹</div>
+      <div class="theme-swatch" data-theme="aurora" style="background:radial-gradient(circle,#001a20,#000)" title="Aurora">🌿</div>
+      <div class="theme-swatch" data-theme="dusk" style="background:radial-gradient(circle,#1a0a20,#000)" title="Violet Dusk">💜</div>
+      <div class="theme-swatch" data-theme="ocean" style="background:radial-gradient(circle,#001428,#000)" title="Ocean Night">🌊</div>
+      <div class="theme-swatch" data-theme="cherry" style="background:radial-gradient(circle,#20080a,#000)" title="Cherry Blossom">🌸</div>
+    </div>
+    <div class="f-label">CONSTELLATION LINE</div>
+    <div class="line-row" id="line-picker">
+      <div class="line-opt active" data-line=".49,.8,1" style="color:#7dccff">Cyan</div>
+      <div class="line-opt" data-line="1,.85,0" style="color:#ffd700">Gold</div>
+      <div class="line-opt" data-line="1,.46,.74" style="color:#ff76bd">Rose</div>
+      <div class="line-opt" data-line=".7,.46,1" style="color:#b376ff">Violet</div>
+      <div class="line-opt" data-line=".56,1,.78" style="color:#8fffc7">Mint</div>
+      <div class="line-opt" data-line="1,.7,.3" style="color:#ffb347">Amber</div>
+    </div>
+    <div class="f-label">PARTNER NAMES</div>
+    <div style="display:flex;gap:7px;margin-bottom:12px">
+      <input id="p1-edit" class="f-input" placeholder="Her name (Beth)" style="margin-bottom:0">
+      <input id="p2-edit" class="f-input" placeholder="His name (Taka)" style="margin-bottom:0">
+    </div>
+    <button class="btn-rose clickable" id="save-custom-btn" style="width:100%">Apply Changes ♡</button>
+  </div>
+</div>
+
+<!-- GALLERY MODAL -->
+<div class="modal-bg" id="gallery-modal">
+  <div class="modal-box glass">
+    <div class="m-head"><div class="m-title">✦ Constellation Gallery</div><button class="m-close" id="close-gallery-modal"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="f-label">SAVE CURRENT PATTERN</div>
+    <div style="display:flex;gap:7px;margin-bottom:14px">
+      <input id="gallery-name-input" class="f-input" placeholder="Name this constellation…" style="margin-bottom:0">
+      <button class="btn-gold clickable" id="save-gallery-btn" style="flex-shrink:0;padding:8px 14px">Save</button>
+    </div>
+    <div class="f-label">SAVED CONSTELLATIONS</div>
+    <div id="gallery-list"></div>
+  </div>
+</div>
+
+<!-- NAME CONSTELLATION MODAL -->
+<div class="modal-bg" id="name-cst-modal">
+  <div class="modal-box glass" style="max-width:300px">
+    <div class="m-head"><div class="m-title">✦ Name It</div><button class="m-close" id="close-name-cst-modal"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="f-label">CONSTELLATION NAME</div>
+    <input id="cst-name-input" class="f-input" placeholder="e.g. The First Kiss…">
+    <div class="f-row"><button class="btn-rose clickable" id="save-cst-name-btn">Name It ♡</button></div>
+  </div>
+</div>
+
+<!-- INTRO -->
+<div id="intro">
+  <div id="intro-box" class="glass">
+    <div id="intro-names" class="glow-rose">Beth &amp; Taka</div>
+    <div id="intro-tagline">a love story written across the cosmos ✦</div>
+    <div id="name-row">
+      <input class="name-inp" id="p1-name" placeholder="Her name (Beth)">
+      <input class="name-inp" id="p2-name" placeholder="His name (Taka)">
+    </div>
+    <div class="i-grid">
+      <div class="i-card"><div class="i-card-h"><div class="i-icon" style="background:rgba(255,126,179,.12)">💫</div><span>Any Star</span></div><p>Tap ANY star in the sky to chain it. Every star holds a piece of their love story.</p></div>
+      <div class="i-card"><div class="i-card-h"><div class="i-icon" style="background:rgba(100,160,255,.12)">🚀</div><span>3D Flight</span></div><p>Drag to look around. Scroll to fly. WASD on desktop. Joystick on mobile.</p></div>
+      <div class="i-card"><div class="i-card-h"><div class="i-icon" style="background:rgba(255,215,0,.1)">✨</div><span>Style</span></div><p>Change fonts, sky themes, line colours, star colours & partner names.</p></div>
+      <div class="i-card"><div class="i-card-h"><div class="i-icon" style="background:rgba(180,127,255,.12)">👥</div><span>Together</span></div><p>Share a room code. See each other's stars & constellation lines live.</p></div>
+    </div>
+    <button id="start-btn">Begin Our Story ♡</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONSTELLATION v6 — Beth & Taka Love Story
+// ═══════════════════════════════════════════════════════
+
+const IS_MOBILE = ('ontouchstart' in window) || navigator.maxTouchPoints > 1;
+const PLAYER_COLORS = ['#7df4ff','#ff7eb3','#7fffc4','#ffaa44','#b47fff','#ff6b6b','#ffe066','#80ffdb'];
+const MY_COLOR = PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)];
+const MY_ID = 'p_' + Math.random().toString(36).slice(2,9);
+let MY_NAME = localStorage.getItem('cst-name') || 'Star ' + MY_ID.slice(2,5).toUpperCase();
+
+// Partner names
+let P1_NAME = localStorage.getItem('p1-name') || 'Beth';
+let P2_NAME = localStorage.getItem('p2-name') || 'Taka';
+
+// Global customisation state
+let CURRENT_FONT = 'Quicksand';
+let CURRENT_THEME = 'deep';
+let AMBIENT_ON = false;
+let LINE_COL = {r:.49, g:.8, b:1.0};
+let STAR_PICKED_COLOR = null; // {r,g,b} or null
+let STAR_PICKED_EMOJI = '';
+
+const THEMES = {
+  deep: {bg:0x000004, fog:0x000004},
+  rose: {bg:0x0a0004, fog:0x0a0004},
+  aurora: {bg:0x000804, fog:0x000804},
+  dusk: {bg:0x04000a, fog:0x04000a},
+  ocean: {bg:0x000408, fog:0x000408},
+  cherry: {bg:0x080002, fog:0x080002},
+};
+
+const S = {
+  tool:'select', tapChain:[], connectFirst:null,
+  stories:[], storyIdx:0, timelineOn:false, mpOpen:false,
+  constellationName:'', savedGallery: JSON.parse(localStorage.getItem('cst-gallery')||'[]')
+};
+
+// FX CANVAS
+const fxC = document.getElementById('fx-canvas');
+const fxX = fxC.getContext('2d');
+const mpC = document.getElementById('mp-canvas');
+const mpX = mpC.getContext('2d');
+const FX = [];
+function resizeCanvases(){fxC.width=mpC.width=innerWidth;fxC.height=mpC.height=innerHeight;}
+resizeCanvases();
+window.addEventListener('resize',resizeCanvases);
+
+function spawnBurst(sx,sy,col='#ff7eb3',n=24){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, sp=1.2+Math.random()*3.8;
+    FX.push({x:sx,y:sy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,decay:.018+Math.random()*.022,r:1.5+Math.random()*2.8,col});
+  }
+}
+function spawnLineFX(x1,y1,x2,y2){
+  for(let i=0;i<18;i++){
+    const t=Math.random(), mx=x1+(x2-x1)*t, my=y1+(y2-y1)*t;
+    const c=`rgba(${Math.round(LINE_COL.r*255)},${Math.round(LINE_COL.g*180)},${Math.round(LINE_COL.b*255)},1)`;
+    FX.push({x:mx,y:my,vx:(Math.random()-.5)*2.2,vy:(Math.random()-.5)*2.2,life:1,decay:.028,r:2.2,col:c});
+  }
+}
+function tickFX(){
+  fxX.clearRect(0,0,fxC.width,fxC.height);
+  for(let i=FX.length-1;i>=0;i--){
+    const p=FX[i];
+    p.x+=p.vx; p.y+=p.vy; p.vy+=.038; p.life-=p.decay;
+    if(p.life<=0){FX.splice(i,1);continue;}
+    fxX.globalAlpha=p.life*.88;
+    fxX.fillStyle=p.col;
+    fxX.beginPath(); fxX.arc(p.x,p.y,p.r*Math.max(.2,p.life),0,Math.PI*2); fxX.fill();
+  }
+  fxX.globalAlpha=1;
+  requestAnimationFrame(tickFX);
+}
+tickFX();
+
+function toast(msg,col='var(--rose)',bord='rgba(255,150,190,.28)'){
+  const el=document.createElement('div');
+  el.className='toast-el';
+  el.style.setProperty('--tc',col);
+  el.style.setProperty('--tb',bord);
+  el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),3200);
+}
+
+function shootStar(){
+  const c=document.getElementById('shooting-stars'), s=document.createElement('div');
+  s.className='sstar';
+  const a=-15-Math.random()*35, l=90+Math.random()*130;
+  s.style.cssText=`top:${Math.random()*65}%;left:${Math.random()*55}%;--a:${a}deg;--dx:${Math.cos(a*Math.PI/180)*700}px;--dy:${Math.sin(a*Math.PI/180)*700}px;--l:${l}px;--d:${2+Math.random()*2.5}s;--dl:${Math.random()*.4}s`;
+  c.appendChild(s); setTimeout(()=>s.remove(),5500);
+}
+setInterval(shootStar,3200); setTimeout(shootStar,400); setTimeout(shootStar,1800);
+
+// AMBIENT HEARTS
+function spawnAmbientHeart(){
+  if(!AMBIENT_ON) return;
+  const hearts=['💗','💕','💖','💓','♡','✨','💫','🌸'];
+  const h=document.createElement('div');
+  h.className='amb-heart';
+  h.textContent=hearts[Math.floor(Math.random()*hearts.length)];
+  const sx=(Math.random()-.5)*120, rot=(Math.random()-.5)*40;
+  h.style.cssText=`left:${5+Math.random()*90}%;bottom:0;--dur:${6+Math.random()*6}s;--del:${Math.random()*2}s;--sx:${sx}px;--rot:${rot}deg`;
+  document.body.appendChild(h);
+  setTimeout(()=>h.remove(),13000);
+}
+setInterval(spawnAmbientHeart, 1200);
+
+// ═══════════════════════════════════════════════════════
+// BETH & TAKA LOVE STORY DATABASE
+// Hundreds of story entries — 3-4 lines each
+// ═══════════════════════════════════════════════════════
+const STORY_DB = [
+  // CHAPTER 1 — THE BEGINNING
+  {tag:'first',emoji:'🌟',text:`It was a Tuesday when Beth first noticed Taka across the crowded library, his dark eyes scanning the spines of old poetry books. She pretended to read her own novel, but the words blurred every time he looked up. Neither of them knew that the universe had already begun weaving their constellation. The stars that night burned a little brighter, as if celebrating what was about to begin.`},
+  {tag:'first',emoji:'💌',text:`Taka almost didn't go to that open mic night, but something pulled him there like gravity. He found a seat near the back, and there was Beth on stage, her voice wrapping around a poem she'd written about longing for something she couldn't name yet. He felt, inexplicably, that the poem was about him — and that he was about to become the answer. She saw him in the crowd and smiled mid-verse, and the whole room disappeared.`},
+  {tag:'first',emoji:'✨',text:`Their first conversation lasted four hours without either of them noticing. Beth talked about the science of stars and how they're made of the same atoms as everything alive. Taka said he'd read somewhere that the word "disaster" means "bad star" in Latin, and Beth laughed and said maybe falling for someone was exactly that. They both went home that night knowing something irreversible had happened.`},
+  {tag:'first',emoji:'🌙',text:`The first time Taka texted Beth was at 11:47 PM, just to share a song he thought she'd like. She replied immediately, even though she should have been asleep, because she'd been lying there thinking about him too. They texted until 4 AM, and when she finally put her phone down, Beth stared at the ceiling with the biggest, most ridiculous smile on her face. Taka did exactly the same thing, thirty minutes away, in his own dark room.`},
+  {tag:'first',emoji:'💫',text:`Beth told her best friend about Taka before she'd told him a single true thing about herself. "He laughs at everything I say," she explained, "and not in a polite way — in a way that makes me feel like I'm the funniest person who ever lived." Her friend said that was either love or a very good con. Beth was ninety-eight percent sure it was love. The other two percent she kept just to protect herself, but it was gone by the end of the week.`},
+
+  // CHAPTER 2 — FALLING
+  {tag:'falling',emoji:'💖',text:`Taka learned that Beth collected small, interesting rocks from every place she visited, and thought this was the most charming thing he'd ever heard. He started noticing interesting rocks too — on sidewalks, in parking lots, in the soil of potted plants — and saving them in his jacket pocket without telling her why. By the time he gave her a smooth dark stone from the riverbank near his childhood home, she already knew what it meant. She keeps it on her nightstand to this day.`},
+  {tag:'falling',emoji:'🌸',text:`Beth was terrible at accepting compliments and Taka thought this was the cutest flaw in the world. Every time he said something sweet, she'd deflect with a joke or look away biting her lip, and he'd pretend not to notice the blush that crept up her neck. He started complimenting her specifically to watch her squirm, and she started bracing for it and failing to hide her smile every single time. They were both completely gone for each other and everyone around them knew it except themselves.`},
+  {tag:'falling',emoji:'🦋',text:`The night it rained and their plans fell apart, they ended up sitting on her apartment floor eating takeout noodles straight from the containers and watching lightning through the window. Beth laughed so hard at something Taka said that broth came out of her nose, and instead of being mortified she just laughed harder. He handed her a paper towel and told her she was beautiful, and meant it so completely that she went quiet for a second and looked at him like she was seeing something for the first time.`},
+  {tag:'falling',emoji:'🔮',text:`Taka noticed that Beth always hummed while she cooked — little fragments of songs she didn't quite remember all the words to. He started quietly learning the full songs so he could finish them when she trailed off. It took her three weeks to notice, and when she did, she stood in the kitchen doorway in her flour-dusted apron and looked at him with an expression he couldn't decode but never wanted to forget. Later she told him it was the moment she stopped pretending to herself.`},
+  {tag:'falling',emoji:'💕',text:`Beth had a terrible habit of staying up too late reading and then being barely functional the next morning. Taka started texting her at 10 PM with a single message: "go to sleep." She never did, but she appreciated it so much that she'd send back a voice memo of herself dramatically sighing and saying his name like a complaint. He saved every single one. She found them years later on his phone — forty-seven little voice recordings of her saying "Takaaaa" in the dark — and cried.`},
+  {tag:'falling',emoji:'🎵',text:`They had their first argument about something neither of them could remember afterwards, and it lasted approximately eleven minutes before both of them started laughing. Beth said "why are we even fighting right now" and Taka said "I genuinely don't know" and they sat side by side against the wall and worked out what they'd actually meant to say. Later Beth told him that was the moment she knew — that they could have a real conversation about the hard stuff, and come out on the other side still holding hands.`},
+
+  // CHAPTER 3 — THE FIRST KISS
+  {tag:'kiss',emoji:'💋',text:`The first kiss happened on a Tuesday, which Beth thought was a very unsexy day for something so monumental. They were standing outside a bookshop in the evening, talking about a novel they'd both read, and suddenly they just… stopped talking. Taka tucked a strand of hair behind her ear and she tilted her face up and then the universe folded in on itself for a moment. When they broke apart Beth whispered "finally" and Taka laughed his real laugh — the rare one she'd already catalogued as her favourite sound.`},
+  {tag:'kiss',emoji:'🌹',text:`Beth had imagined this moment more times than she'd admit, in more specific detail than was perhaps reasonable. But the actual moment was better than all of them, because no daydream had included the way Taka looked at her right before — like she was something he'd been trying to find the right words for and had finally given up on words entirely. She cupped his face in her hands without thinking, just needing to hold something real. The city moved around them and neither of them noticed.`},
+  {tag:'kiss',emoji:'✨',text:`Taka had planned to say something when the moment came — something meaningful, something she could remember. But when it happened, all language left him and all he could do was close the small remaining distance between them. Beth made a tiny surprised sound and then a softer one that he felt rather than heard, and everything he'd meant to say became completely unnecessary. Walking home alone afterwards, he stopped on the bridge over the river and looked at the reflected stars and felt impossibly lucky.`},
+
+  // CHAPTER 4 — LOVE
+  {tag:'love',emoji:'💗',text:`"I love you" came from Taka first, quietly, while they were watching the city lights from a rooftop at midnight. He said it the same way he said everything important — not as a question or a test, just as information he was sharing. Beth turned to look at him and he was already looking at her, completely calm, completely certain. She said it back and meant it in every language she'd ever known, which was only two, but felt like all of them. The sky above them was full of stars and they stayed until they were too cold to stay any longer.`},
+  {tag:'love',emoji:'🌟',text:`Beth made Taka a playlist for every mood — driving at night, studying for something difficult, feeling homesick, needing to be brave. He listened to all of them obsessively, trying to understand what each song selection said about the way she saw him. The "feeling homesick" one destroyed him, because every song on it was about belonging somewhere, and he realised she'd built him a home inside a playlist. He made her one too. He called it "you, basically."`},
+  {tag:'love',emoji:'💌',text:`Taka had a habit of leaving small notes — not long declarations but single sentences, tucked into places Beth would find them hours or days later. Inside the cover of a book she was about to start. Under her coffee cup in the morning. Folded into her jacket pocket before a difficult day. She saved them all in a small wooden box. The notes were things like "this is your year" and "you looked incredible today when you were too busy to notice" and "I am very lucky and I know it."`},
+  {tag:'love',emoji:'🔮',text:`Beth told Taka things she'd never told anyone — small true things she'd always been slightly ashamed of or afraid to voice. The way she still cried at certain songs from childhood. Her recurring dream about the ocean. The version of herself she'd been when she was seventeen that she didn't quite know what to do with now. Taka listened to all of it with his whole face, never trying to fix or reframe, just receiving. She started to believe that being truly known by someone was the most intimate act in the world.`},
+  {tag:'love',emoji:'🌸',text:`There was a period in winter when they were both exhausted and stretched thin and they didn't have much to give each other. But they found a way to be tired together — quiet evenings, early nights, cups of tea passed without many words. Beth said later that it was that winter that made her certain. Not the magical nights or the grand gestures, but the ordinary difficult weeks where they just kept choosing each other in small unremarkable ways. Love isn't only the fireworks, she said. It's who you want to be quiet with.`},
+  {tag:'love',emoji:'💫',text:`Taka started calling Beth "love" — not as a conscious decision, just one day it slipped out and then it stayed. She never commented on it but he noticed how she smiled every time, just slightly, just at the corners of her mouth, like she was trying to keep something in. He kept doing it on purpose after that. She kept pretending she wasn't affected. It was one of their favourite games, played silently, constantly, known only to them.`},
+
+  // CHAPTER 5 — ADVENTURES
+  {tag:'adventure',emoji:'🌍',text:`Their first trip together nearly went wrong three separate times before noon — the flight was delayed, the rental car had a flat tyre, and they got spectacularly lost trying to find the hotel. Beth made a detailed map of all the disasters and taped it to the hotel room wall as a trophy. Taka called it their masterpiece. They ordered room service and ate it on the floor laughing about everything that had gone wrong, and agreed it was already one of the best trips either of them had ever taken.`},
+  {tag:'adventure',emoji:'🏔️',text:`On the mountain trail, Beth got scared at the steepest part and stopped and looked down. Taka climbed back two steps to stand beside her without saying anything about the delay. He just held out his hand. She took it, and they went up the rest of the way together at whatever pace she needed, and at the top the view was so enormous that they both went speechless. Beth cried a little and pretended the wind was responsible. Taka pretended to believe her.`},
+  {tag:'adventure',emoji:'🌊',text:`Swimming at night in the warm ocean was Beth's idea and Taka's nightmare — he was not a natural swimmer and the darkness didn't help. But he went in because she was already ahead of him, laughing and calling back to him through the waves, and he found that following her into things that scared him was something he had developed a talent for. She swam back to him and floated on her back with her ears below the water and said the ocean sounded different from inside it. He stayed close and watched the stars above her.`},
+  {tag:'adventure',emoji:'🎡',text:`The fairground lights reflected in the puddles left by an afternoon rainstorm, and everything smelled like fried dough and damp grass. Taka won Beth a small stuffed animal by throwing rings at bottles with appalling accuracy for the first six attempts and then somehow landing three in a row on the seventh. She carried the small blue bear for the rest of the evening with a sort of mock seriousness that made him adore her completely. She still has the bear. She named it Taka Jr.`},
+
+  // CHAPTER 6 — QUIET MOMENTS
+  {tag:'quiet',emoji:'🌙',text:`Beth discovered that Taka talked in his sleep — not whole sentences, just fragments, murmured very quietly. She lay awake some nights listening, trying to decode what worlds he visited. Once he said her name, clearly, in the middle of some dream she'd never know the details of. She lay very still in the dark, listening to him breathe, feeling the warmth radiating from his side of the bed, and thought: this, exactly this, is the thing I would choose again and again without hesitation.`},
+  {tag:'quiet',emoji:'☁️',text:`Sunday mornings were sacred. Taka made coffee — strong, too strong, in the way Beth had grown to love — and they spent the first hour in whatever version of quiet they needed that week. Sometimes reading. Sometimes talking about nothing important. Sometimes just existing in the same space with the windows open and the neighbourhood noises filtering in. Beth said once that she'd spent years thinking she needed a dramatic love story and had finally understood that what she actually needed was this: a reliable Sunday morning with someone she trusted completely.`},
+  {tag:'quiet',emoji:'💭',text:`They had a tradition of doing nothing together. Not the busy nothing of phones and noise, but actual nothing — lying on the grass in the park or sitting on the apartment floor with the music low, not accomplishing anything, just being. Beth had been raised to feel guilty about unproductive time and Taka was slowly, patiently curing her of this. "We're not nothing," he said once when she started listing tasks. "We're here. That's something." She looked at the ceiling and decided he was right.`},
+  {tag:'quiet',emoji:'🌿',text:`In the garden — however small and impractical — they grew things together. Herbs that took months to establish, tomatoes that never quite ripened in time, a single rose plant that nearly killed itself twice and then bloomed so abundantly it seemed apologetic. Beth talked to the plants when she thought Taka wasn't listening. He was always listening. He thought the way she encouraged things to grow was the same way she loved people, and he was not wrong about this.`},
+
+  // CHAPTER 7 — HARD TIMES
+  {tag:'hard',emoji:'🌧️',text:`There was a year that tested them in ways neither had anticipated. Taka's work became consuming and difficult, and Beth had her own storms to weather, and there were weeks when they moved around each other like ships in fog — present, but not quite connecting. But they checked in. They said the honest thing even when it was easier not to. They made space for each other's hard seasons without demanding the other person perform happiness they didn't have. They came out the other side having learned the most important thing about the other person: they stayed.`},
+  {tag:'hard',emoji:'💙',text:`When Beth's grandmother died, she didn't want to talk about it — she wanted to be somewhere quiet and have someone nearby who wasn't going to ask how she was doing every four minutes. Taka understood this without being told. He sat with her on the balcony for two hours, their chairs angled toward each other, a blanket across her lap. He refilled her tea twice. He didn't say "I know how you feel" because he didn't, and she loved him deeply for not pretending. When she finally cried, he just moved his chair closer.`},
+  {tag:'hard',emoji:'🌱',text:`The argument that nearly broke them lasted three days and felt like years. Afterwards, sitting in the kitchen they'd both been avoiding, they took turns saying all the things they'd been carrying. It was exhausting and painful and also somehow the most honest conversation they'd ever had. "I don't want to be right more than I want to be close to you," Beth said at one point, and Taka knew that was the truest thing either of them had ever managed. They held each other in the kitchen for a long time, and started over.`},
+
+  // CHAPTER 8 — THE FUTURE
+  {tag:'future',emoji:'🏡',text:`The apartment they moved into together was small and had a strange smell for the first week and the hot water took four minutes to arrive. Beth made a list of everything wrong with it on a Post-it note. Taka made a different list — everything he loved about it — and stuck it on the fridge. His list was longer. She read it and added three more things she'd missed. Within a month it was just home, fully and completely, and the strange smell became their strange smell and the four minutes of waiting became the time they talked about their days.`},
+  {tag:'future',emoji:'💍',text:`Taka proposed on a completely ordinary evening. They were cleaning up after dinner, Beth washing, him drying, talking about something inconsequential, and he put down the dish towel and turned to her with the ring he'd been carrying for six weeks and simply said her name. Just her name. She turned from the sink with soapy hands and looked at him and understood everything immediately. She said yes before he'd finished the actual question, which he pointed out later, and she said she'd already known the question. He could not argue with this.`},
+  {tag:'future',emoji:'🌟',text:`On the night before their wedding, they broke tradition and called each other at midnight, both unable to sleep. They talked for two hours about things they'd never talked about — childhood fears, things they were nervous about, the very particular feeling of being on the edge of something enormous. Beth said she was terrified and so certain at the same time, and Taka said that sounded exactly right. They hung up just before dawn, separately, and both lay there smiling at the ceiling of their last night apart.`},
+  {tag:'future',emoji:'💫',text:`Years from now, when people ask how they knew, Beth and Taka will each give slightly different answers. Beth will say it was the way he listened. Taka will say it was the night she laughed until broth came out of her nose. But the truest answer — the one neither of them will quite say out loud — is that they recognised each other. Not from some past life or cosmic plan, but from everything they'd ever hoped for and given up on. They looked at each other and thought: oh. There you are.`},
+
+  // CHAPTER 9 — RANDOM BEAUTIFUL MOMENTS
+  {tag:'moment',emoji:'🎶',text:`Beth learned three words of Taka's mother's language and deployed them at the most unexpected moments. The first time she said one correctly at dinner with his family, his grandmother laughed and clapped her hands and said something long and loving in response. Taka translated approximately twenty percent of it and was embarrassed about the rest. Beth suspected from his expression that it involved grandchildren and stored this information carefully.`},
+  {tag:'moment',emoji:'🍜',text:`Taka learned to make his mother's recipe for Beth — not perfectly at first, but iteratively, in small improvements over months. The sixth attempt was close. The eleventh was real. He served it the evening after a particularly hard week she'd had, without announcing what it was. She took one bite and went very quiet and then looked up at him with an expression that made him feel he'd done something important. She asked how long it had taken to learn. He said "long enough" and meant it as a love declaration.`},
+  {tag:'moment',emoji:'🎨',text:`Beth had a creative block for almost four months, and Taka watched it happen without trying to fix her out of it. He didn't say "just make something" or "you're too in your head." He just kept being interested in her — in what she noticed, what she was reading, what made her laugh. One afternoon she looked up from her sketchbook and showed him a drawing she'd done of his hands. It was the first thing she'd made in all that time. He still has it, framed, in his studio.`},
+  {tag:'moment',emoji:'🌃',text:`They drove for three hours once to see a specific view of the city from a hill at night — something Beth had seen in a photograph and wanted to find. They arrived just as the clouds cleared and the whole skyline was laid out below them like a spilled jewellery box. Taka had been skeptical about the drive and never admitted aloud that it was one of the most beautiful things he'd seen. But he took seventeen photographs and has one as his phone background to this day.`},
+  {tag:'moment',emoji:'📚',text:`They read to each other sometimes — not always, but sometimes. Beth would read from whatever novel she was in the middle of, just a few pages, while Taka made tea or lay on the couch with his arm over his eyes listening. He claimed he was resting and not actually listening but he'd always comment on the plot afterwards. She read him a love poem once, pretending it was just interesting as a poem, and watched him pretend he didn't know she meant it for him. They were both very bad at being subtle with each other.`},
+  {tag:'moment',emoji:'🌅',text:`They watched the sunrise once after staying up all night talking — not on purpose, just they kept finding another thing to say until the sky changed colour and they looked at each other in mild disbelief. Beth made toast and they sat at the window as the world started and felt like they were the only two people awake in it. Taka said "I don't know what we even talked about" and Beth said "everything" and that was exactly right. The toast burned slightly and neither of them minded.`},
+  {tag:'moment',emoji:'🎁',text:`Taka was not a natural gift-giver — he worried too much about whether he'd understood correctly. But he paid attention in the particular way only people in love do: he remembered the book she mentioned offhandedly six months ago, the specific shade of blue she said she'd always wanted a scarf in, the name of the film she'd never managed to see as a child. His gifts were small but so accurately targeted that receiving them felt like being deeply, quietly seen. This was, Beth understood, the greatest gift of all.`},
+  {tag:'moment',emoji:'💃',text:`Beth made Taka dance with her in the kitchen, badly, often. He resisted every single time and then gave in within thirty seconds because her dancing — enthusiastic, slightly off-beat, completely unselfconscious — was one of his favourite things to watch. She taught him one move she'd learned from a video and he performed it once with devastating seriousness and then refused to ever do it again. She filmed it. She has never shown it to anyone. This is part of the terms of their love.`},
+
+  // CHAPTER 10 — THE CONSTELLATION
+  {tag:'constellation',emoji:'⭐',text:`Beth read once that the light from distant stars is millions of years old by the time it reaches us — we're seeing the past, looking up. She told Taka she found this comforting rather than sad: that some things persist long enough to be found by the right eyes, across any distance. He looked at the sky that night for a long time. Then he said he thought maybe that's what had happened with them too. She said she thought so too.`},
+  {tag:'constellation',emoji:'🌌',text:`They named their constellation together, long after both of them had given up on doing anything productive that evening. They had been lying on a blanket looking up, arguing gently about which star was brighter, when Taka suggested they name the pattern they were looking at something that mattered to them. Beth chose a word from the language of her grandmother. He chose a word from his. Together, in two languages, it meant: found, at last.`},
+  {tag:'constellation',emoji:'✨',text:`If you could map their love story onto the sky — each moment a star, each choice a line connecting them — you'd have a constellation unlike any the astronomers had charted. Not a hunter or a bear or a queen, but something rarer: the shape of two specific people finding each other in the vastness of everything, drawing lines between the significant points, and saying: this is ours. This is the map of us. We were here, and we were here, and here, and here — and every point leads to every other.`},
+  {tag:'constellation',emoji:'💕',text:`Years from now, Beth and Taka will sit on a rooftop or a hillside or a suburban back garden and look up at the same sky they've always been under. The stars will be the same stars — uncaring, ancient, beautiful. And they'll point out the old familiar shapes to each other, the ones they made up when they were new, and they'll still remember every name they gave them and every story that goes with each one. The sky keeps all of it. So do they.`},
+];
+
+// Get story for a star (by index, mod the story count)
+function getStoryForStar(starIdx) {
+  // Mix it up: cycle through stories but jump around based on starIdx
+  const offset = (starIdx * 7 + Math.floor(starIdx / 3)) % STORY_DB.length;
+  return STORY_DB[offset];
+}
+
+function getRandomStory() {
+  return STORY_DB[Math.floor(Math.random() * STORY_DB.length)];
+}
+
+// ═══════════════════════════════════════════════════════
+// THREE.JS GALAXY ENGINE
+// ═══════════════════════════════════════════════════════
+class Galaxy {
+  constructor(){
+    this.scene = new THREE.Scene();
+    this.scene.fog = new THREE.FogExp2(THEMES[CURRENT_THEME].fog, 0.00009);
+    this.camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.5, 8000);
+    this.camera.position.set(0,0,420);
+    this.renderer = new THREE.WebGLRenderer({antialias:true, alpha:false, preserveDrawingBuffer:true});
+    this.renderer.setSize(innerWidth,innerHeight);
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+    this.renderer.setClearColor(THEMES[CURRENT_THEME].bg,1);
+    document.getElementById('canvas-container').appendChild(this.renderer.domElement);
+
+    this.stars = [];
+    this.connections = [];
+    this.hovIdx = -1;
+    this.yaw = 0; this.pitch = 0;
+    this.mouse = new THREE.Vector2();
+    this.raycaster = new THREE.Raycaster();
+    this.dragging = false; this.lastMX=0; this.lastMY=0;
+    this.movingIdx = -1;
+    this.keys = {};
+    this.joyVel = {x:0,y:0};
+
+    this.build();
+    this.setupEvents();
+    this.animate();
+  }
+
+  setTheme(t){
+    const th=THEMES[t]||THEMES.deep;
+    this.renderer.setClearColor(th.bg,1);
+    this.scene.fog.color.set(th.fog);
+    CURRENT_THEME=t;
+  }
+
+  build(){
+    this.buildBgStars();
+    this.buildNebulae();
+    this.buildSpecialStars();
+  }
+
+  // 6000 BACKGROUND STARS — more colours, more variety
+  buildBgStars(){
+    const N = 6000;
+    const pos=new Float32Array(N*3), col=new Float32Array(N*3), sz=new Float32Array(N), tp=new Float32Array(N);
+    // 16 colour palette — much richer
+    const pal=[
+      [1.0,1.0,1.0],[.96,.98,1.0],[1.0,.97,.88],[.72,.88,1.0],
+      [.93,.75,1.0],[1.0,.82,.82],[.75,.95,.88],[1.0,.92,.6],
+      [.85,.85,1.0],[1.0,.76,.56],[.6,.9,1.0],[1.0,.9,.5],
+      [1.0,.7,.85],[.7,1.0,.9],[.9,.7,1.0],[1.0,.88,.7],
+    ];
+    for(let i=0;i<N;i++){
+      const th=Math.random()*Math.PI*2, ph=Math.acos(2*Math.random()-1);
+      const r=1200+Math.random()*3500;
+      pos[i*3]=r*Math.sin(ph)*Math.cos(th);
+      pos[i*3+1]=r*Math.sin(ph)*Math.sin(th);
+      pos[i*3+2]=r*Math.cos(ph);
+      const c=pal[Math.floor(Math.random()*pal.length)];
+      const br=.42+Math.random()*.58;
+      col[i*3]=c[0]*br; col[i*3+1]=c[1]*br; col[i*3+2]=c[2]*br;
+      const rr=Math.random();
+      sz[i] = rr<.58 ? 3+Math.random()*5 : rr<.84 ? 8+Math.random()*13 : 18+Math.random()*24;
+      tp[i] = sz[i]>14 ? 1 : 0;
+    }
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    geo.setAttribute('sCol',new THREE.BufferAttribute(col,3));
+    geo.setAttribute('sSize',new THREE.BufferAttribute(sz,1));
+    geo.setAttribute('sType',new THREE.BufferAttribute(tp,1));
+    const mat=new THREE.ShaderMaterial({
+      uniforms:{uT:{value:0},uPR:{value:this.renderer.getPixelRatio()}},
+      vertexShader:`attribute float sSize;attribute vec3 sCol;attribute float sType;
+        varying vec3 vC;varying float vT;uniform float uT,uPR;
+        void main(){vC=sCol;vT=sType;
+          vec4 mv=modelViewMatrix*vec4(position,1.0);
+          float tw=1.0+.22*sin(uT*1.7+position.x*.0035)+.12*sin(uT*2.6+position.z*.005);
+          gl_PointSize=clamp(sSize*uPR*tw*(310./(-mv.z+.01)),.3,80.);
+          gl_Position=projectionMatrix*mv;}`,
+      fragmentShader:`varying vec3 vC;varying float vT;
+        void main(){vec2 uv=gl_PointCoord-.5;float d=length(uv);if(d>.5)discard;
+          float a=0.;vec3 col=vC;
+          if(vT>.5){
+            float core=1.-smoothstep(.0,.11,d);float halo=exp(-d*5.)*.6;
+            float ax=abs(uv.x),ay=abs(uv.y);
+            float sp1=exp(-ay*24.)*exp(-ax*1.8)+exp(-ax*24.)*exp(-ay*1.8);
+            vec2 r2=vec2(uv.x+uv.y,uv.x-uv.y)*.7071;
+            float sp2=(exp(-abs(r2.y)*26.)*exp(-abs(r2.x)*2.)+exp(-abs(r2.x)*26.)*exp(-abs(r2.y)*2.))*.4;
+            a=max(core,max(halo,max(sp1*.72,sp2)));
+            col=mix(vec3(1.),vC,smoothstep(.0,.18,d));col*=2.;
+          }else{
+            float core=1.-smoothstep(.0,.2,d);float fr=exp(-d*9.)*.4;
+            a=max(core,fr);col=mix(vec3(1.),vC,smoothstep(.0,.28,d));col*=1.5;
+          }
+          gl_FragColor=vec4(col,a);}`,
+      transparent:true,blending:THREE.AdditiveBlending,depthWrite:false
+    });
+    this.bgMesh=new THREE.Points(geo,mat);
+    this.scene.add(this.bgMesh);
+  }
+
+  // 12 COLOURFUL NEBULAE
+  buildNebulae(){
+    const defs=[
+      {p:[450,280,-650],c:[.2,.04,.45],r:420},{p:[-550,-90,-750],c:[.04,.14,.38],r:320},
+      {p:[120,-380,-950],c:[.42,.04,.16],r:460},{p:[-240,480,-850],c:[.08,.34,.24],r:390},
+      {p:[750,130,-520],c:[.32,.14,.04],r:280},{p:[-640,220,-430],c:[.12,.05,.44],r:340},
+      {p:[320,-540,-640],c:[.24,.04,.34],r:310},{p:[-130,640,-760],c:[.04,.3,.2],r:370},
+      {p:[900,-200,-600],c:[.4,.2,.04],r:250},{p:[-850,400,-500],c:[.08,.36,.3],r:300},
+      {p:[0,0,-1100],c:[.38,.08,.28],r:520},{p:[-300,300,-800],c:[.05,.22,.42],r:380},
+    ];
+    defs.forEach(d=>{
+      const n=1400,pos=new Float32Array(n*3),col=new Float32Array(n*3),sz=new Float32Array(n);
+      for(let i=0;i<n;i++){
+        const th=Math.random()*Math.PI*2,ph=Math.random()*Math.PI;
+        const r=Math.pow(Math.random(),.35)*d.r;
+        pos[i*3]=d.p[0]+r*Math.sin(ph)*Math.cos(th);
+        pos[i*3+1]=d.p[1]+r*Math.sin(ph)*Math.sin(th);
+        pos[i*3+2]=d.p[2]+r*Math.cos(ph);
+        const br=.06+Math.random()*.6;
+        col[i*3]=d.c[0]*br;col[i*3+1]=d.c[1]*br;col[i*3+2]=d.c[2]*br;
+        sz[i]=28+Math.random()*90;
+      }
+      const geo=new THREE.BufferGeometry();
+      geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+      geo.setAttribute('sCol',new THREE.BufferAttribute(col,3));
+      geo.setAttribute('sSize',new THREE.BufferAttribute(sz,1));
+      geo.setAttribute('sType',new THREE.BufferAttribute(new Float32Array(n),1));
+      const mat=new THREE.ShaderMaterial({
+        uniforms:{uT:{value:0},uPR:{value:this.renderer.getPixelRatio()}},
+        vertexShader:`attribute float sSize;attribute vec3 sCol;varying vec3 vC;uniform float uT,uPR;
+          void main(){vC=sCol;vec4 mv=modelViewMatrix*vec4(position,1.0);
+            gl_PointSize=clamp(sSize*uPR*(200./(-mv.z+.01)),1.,110.);gl_Position=projectionMatrix*mv;}`,
+        fragmentShader:`varying vec3 vC;void main(){float d=length(gl_PointCoord-.5);
+          if(d>.5)discard;float a=exp(-d*7.)*.2;gl_FragColor=vec4(vC*2.2,a);}`,
+        transparent:true,blending:THREE.AdditiveBlending,depthWrite:false
+      });
+      this.scene.add(new THREE.Points(geo,mat));
+    });
+  }
+
+  // 20 SPECIAL STARS — all are "conjurable" (tapping any gives a story)
+  buildSpecialStars(){
+    const starDefs = [
+      // Milestone stars (golden)
+      {name:'First Meeting',   msg:'The day our eyes first met',           p:[-200,100,70],   c:[1,.85,0],    sz:28, e:'🌟'},
+      {name:'First Message',   msg:'Words that connected our hearts',      p:[-100,-80,50],   c:[1,.85,0],    sz:24, e:'💌'},
+      {name:'First Laugh',     msg:'Joy became shared between us',         p:[15,140,40],     c:[1,.85,0],    sz:24, e:'✨'},
+      {name:'First Date',      msg:'When time stood still for us',         p:[110,-65,80],    c:[1,.85,0],    sz:26, e:'🌹'},
+      {name:'First Kiss',      msg:'The stars held their breath',          p:[200,110,-30],   c:[1,.85,0],    sz:26, e:'💋'},
+      {name:'I Love You',      msg:'Three words, infinite meaning',        p:[-150,-130,60],  c:[1,.85,0],    sz:24, e:'💖'},
+      // Rose stars (special milestones)
+      {name:'My Love ♥',       msg:'The brightest star in my sky',         p:[60,60,130],     c:[1,.46,.74],  sz:32, e:'💕'},
+      {name:'Always & Forever',msg:'A promise written in starlight',       p:[-80,160,90],    c:[1,.46,.74],  sz:28, e:'💍'},
+      {name:'Home',            msg:'Wherever you are is where I belong',   p:[160,-120,40],   c:[1,.46,.74],  sz:24, e:'🏡'},
+      {name:'Our Song',        msg:'The melody that means everything',     p:[-60,-200,80],   c:[1,.46,.74],  sz:22, e:'🎵'},
+      // Cyan stars (adventures)
+      {name:'Our Adventure',   msg:'Somewhere we ran away together',       p:[240,-80,-20],   c:[.5,.9,1],    sz:24, e:'🌍'},
+      {name:'Midnight Talks',  msg:'The hours that felt like minutes',     p:[-220,80,-40],   c:[.5,.9,1],    sz:22, e:'🌙'},
+      {name:'Our Secret',      msg:'The thing only we two know',           p:[100,200,-60],   c:[.5,.9,1],    sz:22, e:'🤫'},
+      {name:'The Morning',     msg:'Waking up beside you',                 p:[-140,-60,-80],  c:[.5,.9,1],    sz:22, e:'☀️'},
+      // Violet stars (deep feelings)
+      {name:'I Choose You',    msg:'Every single day, without hesitation', p:[180,40,60],     c:[.7,.5,1],    sz:26, e:'💜'},
+      {name:'Your Laugh',      msg:'The sound that fixes everything',      p:[-100,100,-100], c:[.7,.5,1],    sz:22, e:'😊'},
+      {name:'Together',        msg:'The simplest, most perfect word',      p:[20,-160,100],   c:[.7,.5,1],    sz:28, e:'🤝'},
+      {name:'Our Dream',       msg:'The future we are building',           p:[-200,-40,100],  c:[.7,.5,1],    sz:22, e:'🌠'},
+      // Mint stars (gentle moments)
+      {name:'Quiet Sunday',    msg:'Tea, blankets, and you',               p:[140,160,-40],   c:[.5,1,.78],   sz:22, e:'☁️'},
+      {name:'Found',           msg:'After all this time, here you are',    p:[0,0,180],       c:[1,.7,.4],    sz:30, e:'🌟'},
+    ];
+
+    starDefs.forEach((e,i)=>{
+      this.stars.push({
+        id:Date.now()+i, pos:new THREE.Vector3(...e.p),
+        col:new THREE.Color(...e.c), size:e.sz||24,
+        name:e.name, msg:e.msg, date:'', emoji:e.e||'',
+        isSpecial:true, _hl:0
+      });
+    });
+    this.rebuildUserMesh();
+  }
+
+  rebuildUserMesh(){
+    if(this.userMesh) this.scene.remove(this.userMesh);
+    const n=this.stars.length; if(!n)return;
+    const pos=new Float32Array(n*3),col=new Float32Array(n*3),sz=new Float32Array(n),hl=new Float32Array(n);
+    this.stars.forEach((s,i)=>{
+      pos[i*3]=s.pos.x; pos[i*3+1]=s.pos.y; pos[i*3+2]=s.pos.z;
+      col[i*3]=s.col.r; col[i*3+1]=s.col.g; col[i*3+2]=s.col.b;
+      sz[i]=s.size||24; hl[i]=s._hl||0;
+    });
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    geo.setAttribute('sCol',new THREE.BufferAttribute(col,3));
+    geo.setAttribute('sSize',new THREE.BufferAttribute(sz,1));
+    geo.setAttribute('sHl',new THREE.BufferAttribute(hl,1));
+    const mat=new THREE.ShaderMaterial({
+      uniforms:{uT:{value:0},uPR:{value:this.renderer.getPixelRatio()}},
+      vertexShader:`attribute float sSize;attribute vec3 sCol;attribute float sHl;
+        varying vec3 vC;varying float vH;uniform float uT,uPR;
+        void main(){vC=sCol;vH=sHl;
+          vec4 mv=modelViewMatrix*vec4(position,1.0);
+          float tw=1.0+.38*sin(uT*1.3+position.x*.008)+.18*sin(uT*2.1+position.y*.012);
+          gl_PointSize=clamp(sSize*uPR*tw*(400./(-mv.z+.01)),6.,160.);
+          gl_Position=projectionMatrix*mv;}`,
+      fragmentShader:`varying vec3 vC;varying float vH;
+        void main(){vec2 uv=gl_PointCoord-.5;float d=length(uv);if(d>.5)discard;
+          float ax=abs(uv.x),ay=abs(uv.y);
+          float sp1=exp(-ay*18.)*exp(-ax*1.5)+exp(-ax*18.)*exp(-ay*1.5);
+          vec2 r2=vec2(uv.x+uv.y,uv.x-uv.y)*.7071;
+          float sp2=(exp(-abs(r2.y)*20.)*exp(-abs(r2.x)*1.8)+exp(-abs(r2.x)*20.)*exp(-abs(r2.y)*1.8))*.5;
+          float core=1.-smoothstep(.0,.09,d);float halo=exp(-d*4.)*.65;float outer=exp(-d*1.8)*.25;
+          float a=max(core,max(halo,max(outer,max(sp1*.75,sp2))));
+          vec3 col=mix(vec3(1.),vC,smoothstep(.0,.16,d));
+          if(vH>.5){col=mix(col,vec3(.95,.5,.75),.55+.45*sin(vH*3.14));}
+          col*=2.2;gl_FragColor=vec4(col,a);}`,
+      transparent:true,blending:THREE.AdditiveBlending,depthWrite:false
+    });
+    this.userMesh=new THREE.Points(geo,mat);
+    this.scene.add(this.userMesh);
+  }
+
+  setHL(i,v){
+    if(i<0||i>=this.stars.length) return;
+    this.stars[i]._hl=v;
+    if(this.userMesh){const a=this.userMesh.geometry.attributes.sHl.array;a[i]=v;this.userMesh.geometry.attributes.sHl.needsUpdate=true;}
+  }
+
+  hitTest(){
+    const cx=(this.mouse.x+1)/2*innerWidth, cy=(1-this.mouse.y)/2*innerHeight;
+    const tmp=new THREE.Vector3(); let best=-1,bd=Infinity;
+    const R=IS_MOBILE?62:48;
+    for(let i=0;i<this.stars.length;i++){
+      tmp.copy(this.stars[i].pos).project(this.camera);
+      const sx=(tmp.x+1)/2*innerWidth, sy=(1-tmp.y)/2*innerHeight;
+      const dd=Math.hypot(sx-cx,sy-cy);
+      if(dd<R&&dd<bd){bd=dd;best=i;}
+    }
+    return best;
+  }
+
+  addConnection(a,b,remoteId){
+    if(this.connections.find(c=>(c.a===a&&c.b===b)||(c.a===b&&c.b===a))) return null;
+    const conn={a,b,id:remoteId||Date.now(),_t:0,_drawing:true};
+    this.connections.push(conn);
+    this.buildLine(conn);
+    const PA=this.stars[a].pos.clone().project(this.camera);
+    const PB=this.stars[b].pos.clone().project(this.camera);
+    spawnLineFX((PA.x+1)/2*innerWidth,(1-PA.y)/2*innerHeight,(PB.x+1)/2*innerWidth,(1-PB.y)/2*innerHeight);
+    return conn;
+  }
+
+  buildLine(conn){
+    const SEGS=80;
+    const from=this.stars[conn.a].pos, to=this.stars[conn.b].pos;
+    const pts=[]; for(let i=0;i<=SEGS;i++) pts.push(from.clone().lerp(to,i/SEGS));
+    const geo=new THREE.BufferGeometry().setFromPoints(pts);
+    const mat=new THREE.ShaderMaterial({
+      uniforms:{uT:{value:0},uCol:{value:new THREE.Color(LINE_COL.r,LINE_COL.g,LINE_COL.b)}},
+      vertexShader:`void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+      fragmentShader:`uniform float uT;uniform vec3 uCol;void main(){float p=.42+.28*sin(uT*2.4);gl_FragColor=vec4(uCol*(1.3+.4*p),p);}`,
+      transparent:true,blending:THREE.AdditiveBlending,depthWrite:false
+    });
+    const line=new THREE.Line(geo,mat);
+    line.geometry.setDrawRange(0,0);
+    this.scene.add(line);
+    const sGeo=new THREE.BufferGeometry();
+    sGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array([0,0,0]),3));
+    const sMat=new THREE.ShaderMaterial({
+      uniforms:{uT:{value:0},uCol:{value:new THREE.Color(LINE_COL.r,LINE_COL.g,LINE_COL.b)}},
+      vertexShader:`void main(){gl_PointSize=10.0;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+      fragmentShader:`uniform vec3 uCol;void main(){vec2 uv=gl_PointCoord-.5;float d=length(uv);if(d>.5)discard;
+        float ax=abs(uv.x),ay=abs(uv.y);
+        float sp=exp(-ay*20.)*exp(-ax*1.5)+exp(-ax*20.)*exp(-ay*1.5);
+        float c=1.-smoothstep(.0,.35,d);gl_FragColor=vec4(mix(uCol,vec3(1.),c),max(c,sp*.8));}`,
+      transparent:true,blending:THREE.AdditiveBlending,depthWrite:false
+    });
+    const spark=new THREE.Points(sGeo,sMat);
+    this.scene.add(spark);
+    conn._line=line; conn._spark=spark; conn._from=from.clone(); conn._to=to.clone(); conn._pts=pts; conn._SEGS=SEGS;
+  }
+
+  updateLineColors(){
+    this.connections.forEach(c=>{
+      if(c._line) c._line.material.uniforms.uCol.value.set(LINE_COL.r,LINE_COL.g,LINE_COL.b);
+      if(c._spark) c._spark.material.uniforms.uCol.value.set(LINE_COL.r,LINE_COL.g,LINE_COL.b);
+    });
+  }
+
+  clearLines(){
+    this.connections.forEach(c=>{
+      if(c._line) this.scene.remove(c._line);
+      if(c._spark) this.scene.remove(c._spark);
+    });
+    this.connections=[];
+  }
+
+  addStarAt(mpMeta){
+    this.raycaster.setFromCamera(this.mouse,this.camera);
+    const dist=220;
+    const p=this.raycaster.ray.origin.clone().add(this.raycaster.ray.direction.clone().multiplyScalar(dist));
+    const sc = STAR_PICKED_COLOR ? new THREE.Color(...Object.values(STAR_PICKED_COLOR).map(Number)) : new THREE.Color(1,1,1);
+    const star={id:mpMeta?.id||Date.now(),pos:p,col:sc,size:24,
+      name:mpMeta?.name||'',msg:mpMeta?.msg||'',date:'',emoji:STAR_PICKED_EMOJI||'',
+      isAdded:true,_hl:0};
+    this.stars.push(star);
+    this.rebuildUserMesh();
+    const idx=this.stars.length-1;
+    this.setHL(idx,.6); setTimeout(()=>this.setHL(idx,0),700);
+    const tp=p.clone().project(this.camera);
+    spawnBurst((tp.x+1)/2*innerWidth,(1-tp.y)/2*innerHeight,'#ff7eb3',28);
+    if(!mpMeta) showStarModal(star);
+    return star;
+  }
+
+  deleteStar(idx){
+    this.connections=this.connections.filter(c=>{
+      if(c.a===idx||c.b===idx){if(c._line)this.scene.remove(c._line);if(c._spark)this.scene.remove(c._spark);return false;}
+      return true;
+    });
+    this.connections=this.connections.map(c=>({...c,a:c.a>idx?c.a-1:c.a,b:c.b>idx?c.b-1:c.b}));
+    this.stars.splice(idx,1);
+    this.rebuildUserMesh();
+  }
+
+  // ALL STARS ARE CONJURABLE
+  tapStar(idx){
+    if(S.tapChain.includes(idx)){showStarModal(this.stars[idx]);return;}
+    this.setHL(idx,.9);
+    if(S.tapChain.length>0) this.addConnection(S.tapChain[S.tapChain.length-1],idx);
+    S.tapChain.push(idx);
+    updateChainHUD();
+    // Auto-show a story preview in tooltip
+    const s=this.stars[idx];
+    if(s) showQuickStory(idx);
+  }
+
+  clearTapChain(){
+    S.tapChain.forEach(i=>{if(i<this.stars.length)this.setHL(i,0);});
+    S.tapChain=[];
+    document.getElementById('chain-hud').classList.remove('vis');
+  }
+
+  connectTool(idx){
+    if(S.connectFirst===null){
+      S.connectFirst=idx; this.setHL(idx,.65);
+      toast('♡ Now tap the second star');
+    } else {
+      if(S.connectFirst!==idx){
+        const conn=this.addConnection(S.connectFirst,idx);
+        if(conn) MP.pushConnection(conn,S.connectFirst,idx);
+      }
+      this.setHL(S.connectFirst,0); S.connectFirst=null;
+    }
+  }
+
+  // HEART FORMATION — arrange first 8 special stars in heart shape
+  arrangeHeart(){
+    const heartPts = [
+      [0,120],[-80,160],[-140,100],[-120,20],[-60,-60],
+      [0,-100],[60,-60],[120,20],[140,100],[80,160],
+    ];
+    const specials=this.stars.filter(s=>s.isSpecial||s.isAdded).slice(0,heartPts.length);
+    specials.forEach((s,i)=>{
+      const [hx,hy]=heartPts[i];
+      s.pos.set(hx, hy, 100);
+    });
+    this.rebuildUserMesh();
+    this.connections.forEach(c=>{
+      if(c._line&&c._pts){
+        const ps=[];for(let i=0;i<=c._SEGS;i++)ps.push(this.stars[c.a].pos.clone().lerp(this.stars[c.b].pos,i/c._SEGS));
+        c._line.geometry.setFromPoints(ps); c._pts=ps;
+      }
+    });
+    toast('♡ Stars arranged in a heart!','var(--rose)','rgba(255,126,179,.3)');
+  }
+
+  setupEvents(){
+    const el=this.renderer.domElement;
+    el.addEventListener('mousedown',e=>this.onDown(e));
+    el.addEventListener('mousemove',e=>this.onMove(e));
+    el.addEventListener('mouseup',()=>this.onUp());
+    el.addEventListener('wheel',e=>{e.preventDefault();const f=new THREE.Vector3(0,0,-1).applyQuaternion(this.camera.quaternion);this.camera.position.addScaledVector(f,e.deltaY*.5);},{passive:false});
+    el.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];this.updateM(t);if(t.clientX>innerWidth*.4)this.onDown({clientX:t.clientX,clientY:t.clientY});},{passive:false});
+    el.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];this.updateM(t);if(t.clientX>innerWidth*.4)this.onMove({clientX:t.clientX,clientY:t.clientY});},{passive:false});
+    el.addEventListener('touchend',()=>this.onUp());
+    window.addEventListener('resize',()=>{this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();this.renderer.setSize(innerWidth,innerHeight);});
+    window.addEventListener('keydown',e=>this.keys[e.code]=true);
+    window.addEventListener('keyup',e=>this.keys[e.code]=false);
+  }
+
+  updateM(e){this.mouse.x=(e.clientX/innerWidth)*2-1;this.mouse.y=-(e.clientY/innerHeight)*2+1;}
+
+  onDown(e){
+    this.updateM(e);
+    const hit=this.hitTest();
+    if(S.tool==='select'){
+      if(hit!==-1){this.tapStar(hit);MP.pushTap(hit);}
+      else{this.dragging=true;this.lastMX=e.clientX;this.lastMY=e.clientY;}
+    } else if(S.tool==='add'){this.addStarAt();}
+    else if(S.tool==='move'){
+      if(hit!==-1) this.movingIdx=hit;
+      else{this.dragging=true;this.lastMX=e.clientX;this.lastMY=e.clientY;}
+    } else if(S.tool==='delete'){
+      if(hit!==-1){this.deleteStar(hit);toast('✦ Star removed','rgba(255,120,120,.9)');}
+    } else if(S.tool==='connect'){
+      if(hit!==-1) this.connectTool(hit);
+    } else if(S.tool==='heart'){
+      this.arrangeHeart();
+    }
+  }
+
+  onMove(e){
+    this.updateM(e);
+    const hit=this.hitTest();
+    if(hit!==this.hovIdx){
+      this.hovIdx=hit;
+      const tt=document.getElementById('tooltip');
+      if(hit!==-1&&(this.stars[hit].name||this.stars[hit].msg)){
+        const s=this.stars[hit];
+        document.getElementById('tt-name').textContent=(s.emoji?s.emoji+' ':'')+( s.name||'Unnamed');
+        document.getElementById('tt-msg').textContent=s.msg||'';
+        tt.style.left=(e.clientX+16)+'px';tt.style.top=(e.clientY-12)+'px';
+        tt.classList.add('vis');
+      } else tt.classList.remove('vis');
+    } else if(hit!==-1){const tt=document.getElementById('tooltip');tt.style.left=(e.clientX+16)+'px';tt.style.top=(e.clientY-12)+'px';}
+
+    if(this.movingIdx!==-1){
+      this.raycaster.setFromCamera(this.mouse,this.camera);
+      const s=this.stars[this.movingIdx];
+      const dist=this.camera.position.distanceTo(s.pos);
+      const np=this.raycaster.ray.origin.clone().add(this.raycaster.ray.direction.clone().multiplyScalar(dist));
+      s.pos.copy(np); this.rebuildUserMesh();
+      this.connections.forEach(c=>{
+        if(c.a===this.movingIdx) c._from=np.clone();
+        if(c.b===this.movingIdx) c._to=np.clone();
+        if((c.a===this.movingIdx||c.b===this.movingIdx)&&c._line){
+          const ps=[];for(let i=0;i<=c._SEGS;i++)ps.push(c._from.clone().lerp(c._to,i/c._SEGS));
+          c._line.geometry.setFromPoints(ps);c._pts=ps;
+        }
+      });
+      return;
+    }
+    if(this.dragging){
+      const dx=e.clientX-this.lastMX,dy=e.clientY-this.lastMY;
+      this.lastMX=e.clientX;this.lastMY=e.clientY;
+      this.yaw-=dx*.0026; this.pitch-=dy*.0026;
+      this.pitch=Math.max(-Math.PI/2+.01,Math.min(Math.PI/2-.01,this.pitch));
+      this.applyCamera();
+      MP.pushCursor(this.camera.position);
+    }
+  }
+
+  onUp(){this.dragging=false;this.movingIdx=-1;}
+
+  applyCamera(){
+    const qY=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),this.yaw);
+    const qX=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),this.pitch);
+    this.camera.quaternion.copy(qY).multiply(qX);
+  }
+
+  resetCamera(){this.camera.position.set(0,0,420);this.yaw=0;this.pitch=0;this.applyCamera();toast('✦ Camera reset');}
+
+  animate(){
+    requestAnimationFrame(this.animate.bind(this));
+    const t=performance.now()*.001;
+    if(this.bgMesh) this.bgMesh.material.uniforms.uT.value=t;
+    if(this.userMesh) this.userMesh.material.uniforms.uT.value=t;
+    const spd=1.4;
+    const fwd=new THREE.Vector3(0,0,-1).applyQuaternion(this.camera.quaternion);
+    const right=new THREE.Vector3(1,0,0).applyQuaternion(this.camera.quaternion);
+    const up=new THREE.Vector3(0,1,0);
+    if(this.keys['KeyW']||this.keys['ArrowUp'])   this.camera.position.addScaledVector(fwd,spd);
+    if(this.keys['KeyS']||this.keys['ArrowDown']) this.camera.position.addScaledVector(fwd,-spd);
+    if(this.keys['KeyA']||this.keys['ArrowLeft']) this.camera.position.addScaledVector(right,-spd);
+    if(this.keys['KeyD']||this.keys['ArrowRight'])this.camera.position.addScaledVector(right,spd);
+    if(this.keys['KeyQ']) this.camera.position.addScaledVector(up,spd);
+    if(this.keys['KeyE']) this.camera.position.addScaledVector(up,-spd);
+    if(Math.abs(this.joyVel.x)>.01||Math.abs(this.joyVel.y)>.01){
+      this.camera.position.addScaledVector(right,this.joyVel.x*spd*1.2);
+      this.camera.position.addScaledVector(fwd,-this.joyVel.y*spd*1.2);
+    }
+    if(!this.dragging&&this.movingIdx===-1&&Math.abs(this.joyVel.x)<.01){
+      this.camera.position.x+=Math.sin(t*.042)*.014;
+      this.camera.position.y+=Math.cos(t*.033)*.011;
+    }
+    this.connections.forEach(c=>{
+      if(!c._line) return;
+      c._line.material.uniforms.uT.value=t;
+      if(c._drawing){
+        c._t=Math.min(1,c._t+.025);
+        c._line.geometry.setDrawRange(0,Math.round(c._t*(c._SEGS+1)));
+        if(c._t>=1){c._line.geometry.setDrawRange(0,c._SEGS+1);c._drawing=false;}
+      }
+      if(c._spark&&c._pts){
+        const st=(t*.18)%1, pi=Math.floor(st*c._SEGS);
+        const pp=c._pts[Math.min(pi,c._SEGS)];
+        const pa=c._spark.geometry.attributes.position.array;
+        pa[0]=pp.x;pa[1]=pp.y;pa[2]=pp.z;
+        c._spark.geometry.attributes.position.needsUpdate=true;
+        c._spark.material.uniforms.uT.value=t;
+      }
+    });
+    MP.drawCursors(this.camera);
+    this.renderer.render(this.scene,this.camera);
+  }
+
+  exportImg(){this.renderer.render(this.scene,this.camera);return this.renderer.domElement.toDataURL('image/png');}
+}
+
+// QUICK STORY SHOW (on star tap)
+function showQuickStory(starIdx){
+  const s=window.galaxy?.stars[starIdx];
+  if(!s) return;
+  // Just update chain HUD with star name + emoji
+  const nm=(s.emoji?s.emoji+' ':'')+( s.name||'✦');
+  // Story will be generated when user hits Generate
+}
+
+// ═══════════════════════════════════════════════════════
+// STORY GENERATION — from pre-written Beth & Taka database
+// ═══════════════════════════════════════════════════════
+function generateStory(useRandom){
+  // Allow generating with just 1 star tapped OR from connections
+  const chain = S.tapChain.length>=1 ? S.tapChain
+    : [...new Set((window.galaxy?.connections||[]).flatMap(c=>[c.a,c.b]))].slice(0,6);
+
+  if(chain.length<1){
+    toast('♡ Tap at least one star first','var(--rose)');
+    return;
+  }
+
+  const stars=chain.map(i=>window.galaxy.stars[i]).filter(Boolean);
+  const primaryStar=stars[0];
+  const primaryIdx=chain[0];
+
+  // Pick a story from the database
+  let entry;
+  if(useRandom){
+    entry=getRandomStory();
+  } else {
+    // Pick based on star name/tag for themed stories
+    const name=(primaryStar.name||'').toLowerCase();
+    let themed=null;
+    if(name.includes('meet')||name.includes('first message')) themed=STORY_DB.filter(s=>s.tag==='first');
+    else if(name.includes('kiss')||name.includes('love')) themed=STORY_DB.filter(s=>s.tag==='kiss'||s.tag==='love');
+    else if(name.includes('adventure')||name.includes('trip')) themed=STORY_DB.filter(s=>s.tag==='adventure');
+    else if(name.includes('quiet')||name.includes('sunday')||name.includes('morning')) themed=STORY_DB.filter(s=>s.tag==='quiet');
+    else if(name.includes('always')||name.includes('dream')||name.includes('future')) themed=STORY_DB.filter(s=>s.tag==='future');
+    else if(name.includes('constellation')||name.includes('found')) themed=STORY_DB.filter(s=>s.tag==='constellation');
+
+    if(themed&&themed.length>0){
+      // Cycle through themed stories, don't repeat
+      const used=S.storyIdx%themed.length;
+      entry=themed[used];
+    } else {
+      entry=getStoryForStar(primaryIdx);
+    }
+    S.storyIdx++;
+  }
+
+  // Personalise: replace Beth/Taka with custom names
+  let storyText=entry.text
+    .replace(/\bBeth\b/g,P1_NAME)
+    .replace(/\bTaka\b/g,P2_NAME);
+
+  // Add it to the panel
+  const list=document.getElementById('story-list');
+  const empty=list.querySelector('.story-empty'); if(empty) empty.remove();
+  const card=document.createElement('div'); card.className='story-card';
+  const num=S.stories.length+1;
+  const chainNames=stars.map(s=>(s.emoji?s.emoji+' ':'')+( s.name||'✦')).join(' → ');
+
+  card.innerHTML=`<div class="sc-header">
+    <div class="sc-dot"></div>
+    <div class="sc-title-text">Chapter ${num}</div>
+    <span class="sc-star-emoji">${entry.emoji}</span>
+  </div>
+  <div class="sc-text" style="font-family:'${CURRENT_FONT}',serif">${storyText}</div>
+  <div class="sc-chain">${chainNames}</div>`;
+
+  list.insertBefore(card,list.firstChild);
+  S.stories.push({title:`Chapter ${num}`,content:storyText,emoji:entry.emoji});
+
+  // Update count badge
+  document.getElementById('story-count').textContent=`${S.stories.length} chapter${S.stories.length!==1?'s':''}`;
+
+  toast('♡ Story woven from the stars','var(--rose)','rgba(255,126,179,.3)');
+}
+
+// CHAIN HUD
+function updateChainHUD(){
+  const h=document.getElementById('chain-hud'), n=S.tapChain.length;
+  if(!n){h.classList.remove('vis');return;}
+  h.classList.add('vis');
+  const names=S.tapChain.map(i=>{const s=window.galaxy?.stars[i];return s?(s.emoji?s.emoji+' ':'')+( s.name||'✦'):'✦';}).join(' → ');
+  h.textContent=n<1?`♡ ${names} · tap more stars`:`♡ ${names} · press Generate ♡`;
+}
+
+// STAR MODAL
+function showStarModal(star){
+  document.getElementById('star-name').value=star.name||'';
+  document.getElementById('star-msg').value=star.msg||'';
+  document.getElementById('star-date').value=star.date||'';
+  document.getElementById('star-modal').dataset.starId=star.id;
+  // Show picked emoji
+  document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.toggle('picked',e.dataset.e===(star.emoji||'')));
+  // Show picked color
+  const cs=`${star.col.r},${star.col.g},${star.col.b}`;
+  document.querySelectorAll('.col-opt').forEach(c=>c.classList.toggle('picked',c.dataset.c===cs));
+  document.getElementById('star-modal').classList.add('open');
+}
+function closeStarModal(){document.getElementById('star-modal').classList.remove('open');}
+
+// ═══════════════════════════════════════════════════════
+// MULTIPLAYER ENGINE
+// ═══════════════════════════════════════════════════════
+const MP = (() => {
+  let gun=null, roomRef=null, roomCode='', connected=false;
+  const remotePlayers={};
+  const activityItems=[];
+  const RELAYS=['https://gun-relay.glitch.me/gun','https://peer.wallie.io/gun'];
+
+  function init(){
+    try{gun=Gun({peers:RELAYS,localStorage:false});}
+    catch(e){gun=Gun({localStorage:false});}
+  }
+  function genCode(){return Math.random().toString(36).slice(2,8).toUpperCase();}
+
+  function createRoom(){
+    roomCode=genCode();
+    document.getElementById('mp-room-code').textContent=roomCode;
+    joinRoomInternal();
+  }
+  function joinRoom(code){
+    if(!code||code.length<4){toast('♡ Enter a valid room code','var(--rose)');return;}
+    roomCode=code.toUpperCase().trim().slice(0,8);
+    document.getElementById('mp-room-code').textContent=roomCode;
+    joinRoomInternal();
+    toast(`♡ Joining room ${roomCode}…`,'var(--violet)');
+  }
+  function joinRoomInternal(){
+    setStatus('connecting');
+    roomRef=gun.get('cst-room-'+roomCode);
+    roomRef.get('players').get(MY_ID).put({id:MY_ID,name:MY_NAME,color:MY_COLOR,cx:0,cy:0,cz:420,t:Date.now()});
+    roomRef.get('players').map().on((data,key)=>{
+      if(!data||key===MY_ID) return;
+      if(!data.id||Date.now()-data.t>60000) return;
+      if(!remotePlayers[key]){
+        remotePlayers[key]={id:data.id,name:data.name||'Star',color:data.color||'#ff7eb3',cx:data.cx||0,cy:data.cy||0,cz:data.cz||420};
+        addActivity(`${data.name||'Someone'} joined ♡`,data.color||'#ff7eb3');
+      } else {
+        remotePlayers[key].cx=data.cx||0;remotePlayers[key].cy=data.cy||0;remotePlayers[key].cz=data.cz||0;
+      }
+      updatePlayersUI(); setStatus('online');
+    });
+    roomRef.get('connections').map().on((data,key)=>{
+      if(!data||!window.galaxy) return;
+      if(data.author===MY_ID) return;
+      const a=data.a,b=data.b;
+      if(a>=0&&b>=0&&a<window.galaxy.stars.length&&b<window.galaxy.stars.length){
+        const conn=window.galaxy.addConnection(a,b,key);
+        if(conn){
+          const sA=window.galaxy.stars[a]?.name||`Star ${a}`;
+          const sB=window.galaxy.stars[b]?.name||`Star ${b}`;
+          addActivity(`${data.authorName||'Partner'} connected ${sA}→${sB}`,data.authorColor||'#7ef');
+        }
+      }
+    });
+    roomRef.get('stars').map().on((data,key)=>{
+      if(!data||!window.galaxy) return;
+      if(data.author===MY_ID) return;
+      const exists=window.galaxy.stars.find(s=>s.id===data.id);
+      if(!exists&&data.px!=null){
+        const star={id:data.id,pos:new THREE.Vector3(data.px,data.py,data.pz),col:new THREE.Color(1,1,1),size:24,name:data.name||'',msg:data.msg||'',date:'',emoji:'',isAdded:true,_hl:0};
+        window.galaxy.stars.push(star);
+        window.galaxy.rebuildUserMesh();
+        addActivity(`${data.authorName||'Partner'} added "${data.name||'a star'}"`,data.authorColor||'#7ef');
+      }
+    });
+    setInterval(()=>{if(roomRef) roomRef.get('players').get(MY_ID).get('t').put(Date.now());},10000);
+    setStatus('online');
+    toast(`♡ Room ${roomCode} ready — share with your partner`,'var(--violet)');
+  }
+  function pushConnection(conn,a,b){
+    if(!roomRef) return;
+    roomRef.get('connections').get(String(conn.id)).put({a,b,id:conn.id,author:MY_ID,authorName:MY_NAME,authorColor:MY_COLOR,t:Date.now()});
+    const sA=window.galaxy?.stars[a]?.name||`Star ${a}`;
+    const sB=window.galaxy?.stars[b]?.name||`Star ${b}`;
+    addActivity(`You connected ${sA}→${sB}`,MY_COLOR,true);
+  }
+  function pushTap(idx){
+    if(!roomRef||!window.galaxy) return;
+    const s=window.galaxy.stars[idx];
+    if(s?.name) addActivity(`You tapped "${s.name}"`,MY_COLOR,true);
+  }
+  function pushStar(star){
+    if(!roomRef) return;
+    roomRef.get('stars').get(String(star.id)).put({id:star.id,px:star.pos.x,py:star.pos.y,pz:star.pos.z,name:star.name||'',msg:star.msg||'',author:MY_ID,authorName:MY_NAME,authorColor:MY_COLOR,t:Date.now()});
+  }
+  function pushCursor(pos){
+    if(!roomRef) return;
+    roomRef.get('players').get(MY_ID).put({id:MY_ID,name:MY_NAME,color:MY_COLOR,cx:Math.round(pos.x),cy:Math.round(pos.y),cz:Math.round(pos.z),t:Date.now()});
+  }
+  function drawCursors(camera){
+    mpX.clearRect(0,0,mpC.width,mpC.height);
+    Object.values(remotePlayers).forEach(p=>{
+      const worldPos=new THREE.Vector3(p.cx,p.cy,p.cz);
+      const proj=worldPos.clone().project(camera);
+      const sx=(proj.x+1)/2*innerWidth;
+      const sy=(1-proj.y)/2*innerHeight;
+      if(sx<-50||sx>innerWidth+50||sy<-50||sy>innerHeight+50) return;
+      mpX.save();
+      mpX.translate(sx,sy);
+      mpX.fillStyle=p.color; mpX.shadowColor=p.color; mpX.shadowBlur=14;
+      mpX.font='20px serif'; mpX.textAlign='center'; mpX.textBaseline='middle';
+      mpX.fillText('♡',0,0);
+      mpX.shadowBlur=0; mpX.font='10px Quicksand,sans-serif';
+      mpX.fillStyle='rgba(5,5,20,.88)';
+      const tw=mpX.measureText(p.name).width;
+      mpX.fillRect(-tw/2-5,-22,tw+10,16);
+      mpX.fillStyle=p.color; mpX.fillText(p.name,0,-14);
+      mpX.restore();
+    });
+  }
+  function addActivity(msg,color,isMe=false){
+    activityItems.unshift({msg,color,isMe,t:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+    if(activityItems.length>20) activityItems.pop();
+    renderActivity();
+  }
+  function renderActivity(){
+    const el=document.getElementById('mp-activity-list'); if(!el) return;
+    el.innerHTML=activityItems.slice(0,8).map(a=>`<div class="mp-act-item"><div class="mp-act-dot" style="background:${a.color};box-shadow:0 0 5px ${a.color}"></div><div class="mp-act-text">${a.msg}</div><div class="mp-act-time">${a.t}</div></div>`).join('');
+  }
+  function updatePlayersUI(){
+    const el=document.getElementById('mp-players-list'); if(!el) return;
+    const all=[{id:MY_ID,name:MY_NAME,color:MY_COLOR,isMe:true},...Object.values(remotePlayers)];
+    el.innerHTML=all.map(p=>`<div class="mp-player-item"><div class="mp-player-dot" style="background:${p.color};box-shadow:0 0 6px ${p.color}"></div><div class="mp-player-name">${p.name||'Star'}</div>${p.isMe?'<div class="mp-player-you">you</div>':''}</div>`).join('');
+  }
+  function setStatus(s){
+    connected=s==='online';
+    const dot=document.getElementById('mp-status-dot'); if(!dot) return;
+    dot.className='';
+    if(s==='online') dot.classList.add('online');
+    else if(s==='connecting') dot.classList.add('connecting');
+  }
+  init();
+  setTimeout(updatePlayersUI,100);
+  return {createRoom,joinRoom,pushConnection,pushTap,pushStar,pushCursor,drawCursors,addActivity};
+})();
+
+// MOBILE JOYSTICK
+(function setupJoystick(){
+  if(!IS_MOBILE) return;
+  const zone=document.getElementById('joy-zone');
+  const stick=document.getElementById('joystick');
+  const knob=document.getElementById('joystick-knob');
+  let active=false,baseX=0,baseY=0;
+  const MAX=42;
+  zone.addEventListener('touchstart',e=>{e.preventDefault();active=true;const t=e.touches[0];baseX=t.clientX;baseY=t.clientY;stick.style.borderColor='rgba(255,126,179,.55)';},{passive:false});
+  zone.addEventListener('touchmove',e=>{e.preventDefault();if(!active)return;const t=e.touches[0];let dx=t.clientX-baseX,dy=t.clientY-baseY;const dist=Math.hypot(dx,dy);if(dist>MAX){dx=dx/dist*MAX;dy=dy/dist*MAX;}knob.style.left=(50+dx/MAX*40)+'%';knob.style.top=(50+dy/MAX*40)+'%';if(window.galaxy){window.galaxy.joyVel.x=dx/MAX;window.galaxy.joyVel.y=dy/MAX;}},{passive:false});
+  zone.addEventListener('touchend',e=>{e.preventDefault();active=false;knob.style.left='50%';knob.style.top='50%';stick.style.borderColor='rgba(255,126,179,.18)';if(window.galaxy){window.galaxy.joyVel.x=0;window.galaxy.joyVel.y=0;}},{passive:false});
+})();
+
+// GALLERY
+function renderGallery(){
+  const el=document.getElementById('gallery-list'); if(!el) return;
+  if(!S.savedGallery.length){el.innerHTML='<div style="font-size:11px;color:rgba(255,255,255,.3);text-align:center;padding:16px">No saved constellations yet</div>';return;}
+  el.innerHTML=S.savedGallery.map((g,i)=>`<div class="gallery-item" data-gi="${i}"><div class="gallery-name">${g.name}</div><div style="font-size:9px;color:rgba(255,255,255,.3)">${g.stars} stars · ${g.date}</div><span class="gallery-del" data-gd="${i}">✕</span></div>`).join('');
+  el.querySelectorAll('.gallery-del').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const i=parseInt(b.dataset.gd);S.savedGallery.splice(i,1);localStorage.setItem('cst-gallery',JSON.stringify(S.savedGallery));renderGallery();}));
+}
+
+// APPLY FONT to story text
+function applyFont(font){
+  CURRENT_FONT=font;
+  document.querySelectorAll('.sc-text').forEach(el=>el.style.fontFamily=`'${font}',serif`);
+  document.querySelectorAll('.font-opt').forEach(el=>el.classList.toggle('active',el.dataset.font===font));
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  const galaxy=new Galaxy();
+  window.galaxy=galaxy;
+  MP.createRoom();
+
+  // ── TOOL HANDLING ──
+  function setTool(t){
+    S.tool=t;
+    galaxy.clearTapChain(); S.connectFirst=null;
+    document.querySelectorAll('.tool-btn[data-tool],.mob-tool[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===t));
+    const hints={select:'♡ Tap any star to chain it',add:'✦ Tap to plant a new star',connect:'♡ Tap two stars to connect',move:'✦ Drag a star',delete:'✦ Tap a star to remove',heart:'♡ Click to arrange stars in a heart',gallery:'✦ View saved constellations'};
+    if(hints[t]) toast(hints[t]);
+  }
+
+  document.querySelectorAll('.tool-btn[data-tool]').forEach(btn=>btn.addEventListener('click',()=>{
+    const t=btn.dataset.tool;
+    if(t==='reset'){galaxy.resetCamera();return;}
+    if(t==='gallery'){document.getElementById('gallery-modal').classList.add('open');renderGallery();return;}
+    if(t==='timeline'){
+      S.timelineOn=!S.timelineOn; btn.classList.toggle('active',S.timelineOn);
+      if(S.timelineOn){
+        const tl=galaxy.stars.filter(s=>s.isSpecial);
+        for(let i=0;i<tl.length-1;i++) galaxy.addConnection(galaxy.stars.indexOf(tl[i]),galaxy.stars.indexOf(tl[i+1]));
+        toast('♡ Timeline revealed','var(--rose)');
+      }
+      return;
+    }
+    setTool(t);
+  }));
+
+  document.querySelectorAll('.mob-tool[data-tool]').forEach(btn=>btn.addEventListener('click',()=>setTool(btn.dataset.tool)));
+
+  // ── MULTIPLAYER ──
+  function toggleMP(){
+    S.mpOpen=!S.mpOpen;
+    document.getElementById('mp-panel').classList.toggle('visible',S.mpOpen);
+    document.getElementById('btn-mp-toggle').classList.toggle('mp-active',S.mpOpen);
+  }
+  document.getElementById('btn-mp-toggle').addEventListener('click',toggleMP);
+  document.getElementById('mob-room-btn').addEventListener('click',toggleMP);
+  document.getElementById('btn-copy-room').addEventListener('click',()=>{
+    const code=document.getElementById('mp-room-code').textContent;
+    navigator.clipboard?.writeText(code).catch(()=>{});
+    toast(`♡ Room code ${code} copied`,'var(--violet)');
+  });
+  document.getElementById('btn-new-room').addEventListener('click',()=>{MP.createRoom();toast('✦ New room created');});
+  document.getElementById('btn-join-room').addEventListener('click',()=>{MP.joinRoom(document.getElementById('mp-join-input').value);document.getElementById('mp-join-input').value='';});
+  document.getElementById('mp-join-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-join-room').click();});
+
+  // ── GENERATE STORY ──
+  document.getElementById('gen-btn').addEventListener('click',()=>generateStory(false));
+  document.getElementById('rand-btn').addEventListener('click',()=>generateStory(true));
+  document.getElementById('mob-gen-btn')?.addEventListener('click',()=>generateStory(false));
+
+  // ── STAR MODAL ──
+  // Emoji picker
+  document.querySelectorAll('.emoji-opt').forEach(e=>e.addEventListener('click',()=>{
+    document.querySelectorAll('.emoji-opt').forEach(x=>x.classList.remove('picked'));
+    e.classList.add('picked');
+    STAR_PICKED_EMOJI=e.dataset.e;
+  }));
+  // Color picker
+  document.querySelectorAll('.col-opt').forEach(c=>c.addEventListener('click',()=>{
+    document.querySelectorAll('.col-opt').forEach(x=>x.classList.remove('picked'));
+    c.classList.add('picked');
+    const parts=c.dataset.c.split(',').map(Number);
+    STAR_PICKED_COLOR={r:parts[0],g:parts[1],b:parts[2]};
+  }));
+  document.getElementById('close-star-modal').addEventListener('click',closeStarModal);
+  document.getElementById('star-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeStarModal();});
+  document.getElementById('save-star-btn').addEventListener('click',()=>{
+    const id=parseInt(document.getElementById('star-modal').dataset.starId);
+    const s=galaxy.stars.find(s=>s.id===id);
+    if(s){
+      s.name=document.getElementById('star-name').value;
+      s.msg=document.getElementById('star-msg').value;
+      s.date=document.getElementById('star-date').value;
+      s.emoji=STAR_PICKED_EMOJI;
+      if(STAR_PICKED_COLOR) s.col.set(STAR_PICKED_COLOR.r,STAR_PICKED_COLOR.g,STAR_PICKED_COLOR.b);
+      galaxy.rebuildUserMesh();
+      MP.pushStar(s);
+      toast(`♡ "${s.name||'Star'}" saved`,'var(--rose)');
+    }
+    closeStarModal();
+  });
+  document.getElementById('delete-star-btn').addEventListener('click',()=>{
+    const id=parseInt(document.getElementById('star-modal').dataset.starId);
+    const idx=galaxy.stars.findIndex(s=>s.id===id);
+    if(idx!==-1){galaxy.deleteStar(idx);toast('✦ Star removed','rgba(255,120,120,.9)');}
+    closeStarModal();
+  });
+
+  // ── SEARCH ──
+  function openSearch(){document.getElementById('search-modal').classList.add('open');document.getElementById('search-input').value='';document.getElementById('search-results').innerHTML='';setTimeout(()=>document.getElementById('search-input').focus(),100);}
+  document.getElementById('btn-search').addEventListener('click',openSearch);
+  document.getElementById('close-search-modal').addEventListener('click',()=>document.getElementById('search-modal').classList.remove('open'));
+  document.getElementById('search-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('search-modal').classList.remove('open');});
+  document.getElementById('search-input').addEventListener('input',e=>{
+    const q=e.target.value.toLowerCase();
+    if(!q){document.getElementById('search-results').innerHTML='';return;}
+    const res=galaxy.stars.filter(s=>(s.name||'').toLowerCase().includes(q)||(s.msg||'').toLowerCase().includes(q));
+    document.getElementById('search-results').innerHTML=res.slice(0,8).map(s=>`<div class="sr-item" data-id="${s.id}"><div class="sr-name">${s.emoji?s.emoji+' ':''}${s.name||'Unnamed Star'}</div><div class="sr-msg">${s.msg||'—'}</div></div>`).join('');
+    document.querySelectorAll('.sr-item').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const s=galaxy.stars.find(x=>x.id===parseInt(el.dataset.id));
+        if(s){const dir=s.pos.clone().sub(galaxy.camera.position).normalize();galaxy.camera.position.copy(s.pos.clone().sub(dir.multiplyScalar(160)));}
+        document.getElementById('search-modal').classList.remove('open');
+      });
+    });
+  });
+
+  // ── CUSTOMISE ──
+  function openCustom(){document.getElementById('custom-modal').classList.add('open');}
+  document.getElementById('btn-custom').addEventListener('click',openCustom);
+  document.getElementById('mob-custom-btn')?.addEventListener('click',openCustom);
+  document.getElementById('logo-orb').addEventListener('click',openCustom);
+  document.getElementById('close-custom-modal').addEventListener('click',()=>document.getElementById('custom-modal').classList.remove('open'));
+  document.getElementById('custom-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('custom-modal').classList.remove('open');});
+
+  // Font picker
+  document.querySelectorAll('.font-opt').forEach(f=>f.addEventListener('click',()=>applyFont(f.dataset.font)));
+
+  // Theme picker
+  document.querySelectorAll('.theme-swatch').forEach(sw=>sw.addEventListener('click',()=>{
+    document.querySelectorAll('.theme-swatch').forEach(x=>x.classList.remove('active'));
+    sw.classList.add('active');
+    galaxy.setTheme(sw.dataset.theme);
+  }));
+
+  // Line colour picker
+  document.querySelectorAll('.line-opt').forEach(lo=>lo.addEventListener('click',()=>{
+    document.querySelectorAll('.line-opt').forEach(x=>x.classList.remove('active'));
+    lo.classList.add('active');
+    const parts=lo.dataset.line.split(',').map(Number);
+    LINE_COL={r:parts[0],g:parts[1],b:parts[2]};
+    galaxy.updateLineColors();
+  }));
+
+  // Save custom
+  document.getElementById('save-custom-btn').addEventListener('click',()=>{
+    const p1=document.getElementById('p1-edit').value.trim();
+    const p2=document.getElementById('p2-edit').value.trim();
+    if(p1){P1_NAME=p1;localStorage.setItem('p1-name',p1);}
+    if(p2){P2_NAME=p2;localStorage.setItem('p2-name',p2);}
+    const font=document.querySelector('.font-opt.active')?.dataset.font||CURRENT_FONT;
+    applyFont(font);
+    // Update header
+    if(p1||p2) document.getElementById('logo-title').textContent=`${P1_NAME} & ${P2_NAME}`;
+    document.getElementById('custom-modal').classList.remove('open');
+    toast(`♡ Applied! ${P1_NAME} & ${P2_NAME}`,'var(--rose)');
+  });
+
+  // ── GALLERY ──
+  document.getElementById('close-gallery-modal').addEventListener('click',()=>document.getElementById('gallery-modal').classList.remove('open'));
+  document.getElementById('gallery-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('gallery-modal').classList.remove('open');});
+  document.getElementById('save-gallery-btn').addEventListener('click',()=>{
+    const name=document.getElementById('gallery-name-input').value.trim();
+    if(!name){toast('♡ Enter a constellation name first','var(--rose)');return;}
+    const snap={name,stars:galaxy.stars.length,conns:galaxy.connections.length,date:new Date().toLocaleDateString()};
+    S.savedGallery.push(snap);
+    localStorage.setItem('cst-gallery',JSON.stringify(S.savedGallery));
+    renderGallery();
+    document.getElementById('gallery-name-input').value='';
+    toast(`♡ "${name}" saved to gallery`,'var(--gold)');
+  });
+
+  // ── NAME CONSTELLATION ──
+  document.getElementById('btn-name-cst').addEventListener('click',()=>document.getElementById('name-cst-modal').classList.add('open'));
+  document.getElementById('close-name-cst-modal').addEventListener('click',()=>document.getElementById('name-cst-modal').classList.remove('open'));
+  document.getElementById('save-cst-name-btn').addEventListener('click',()=>{
+    S.constellationName=document.getElementById('cst-name-input').value;
+    if(S.constellationName){toast(`♡ Constellation named "${S.constellationName}"`, 'var(--rose)');}
+    document.getElementById('name-cst-modal').classList.remove('open');
+  });
+
+  // ── AMBIENT HEARTS ──
+  document.getElementById('btn-ambient').addEventListener('click',()=>{
+    AMBIENT_ON=!AMBIENT_ON;
+    document.getElementById('btn-ambient').textContent=AMBIENT_ON?'💕 Hearts ✓':'💕 Hearts';
+    toast(AMBIENT_ON?'♡ Floating hearts on!':'Hearts off','var(--rose)');
+  });
+
+  // ── BOTTOM BAR ──
+  document.getElementById('btn-clear').addEventListener('click',()=>{galaxy.clearLines();galaxy.clearTapChain();toast('✦ Sky cleared');});
+  document.getElementById('mob-clear-btn')?.addEventListener('click',()=>{galaxy.clearLines();galaxy.clearTapChain();toast('✦ Sky cleared');});
+  document.getElementById('btn-save').addEventListener('click',()=>{
+    try{localStorage.setItem('cst-v6',JSON.stringify({stories:S.stories,p1:P1_NAME,p2:P2_NAME}));toast('♡ Saved','var(--rose)');}
+    catch{toast('✦ Save failed','rgba(255,120,120,.9)');}
+  });
+  document.getElementById('btn-export').addEventListener('click',()=>{
+    const u=galaxy.exportImg();const a=document.createElement('a');a.href=u;a.download=`${P1_NAME}-${P2_NAME}-constellation.png`;a.click();toast('♡ Image saved');
+  });
+  document.getElementById('btn-suggest').addEventListener('click',()=>{
+    const tips=[
+      `♡ Tap "${P1_NAME}'s Stars" then "${P2_NAME}'s Stars" to reveal your story`,
+      '♡ Try the Heart Formation tool to arrange stars into a heart shape',
+      '♡ Use the Gallery to save and name your constellation patterns',
+      '♡ Turn on Floating Hearts for a romantic atmosphere',
+      '♡ Change fonts in Style — try Dancing Script for a romantic feel',
+      '♡ Every star is conjurable — tap any to add it to your chain',
+      '♡ Use the Timeline tool to auto-connect all milestone stars',
+    ];
+    toast(tips[Math.floor(Math.random()*tips.length)],'var(--rose)','rgba(255,126,179,.3)');
+  });
+
+  // ── HELP ──
+  document.getElementById('btn-help').addEventListener('click',()=>{document.getElementById('intro').style.display='flex';});
+
+  // ── START ──
+  document.getElementById('start-btn').addEventListener('click',()=>{
+    const p1=document.getElementById('p1-name').value.trim();
+    const p2=document.getElementById('p2-name').value.trim();
+    if(p1){P1_NAME=p1;localStorage.setItem('p1-name',p1);}
+    if(p2){P2_NAME=p2;localStorage.setItem('p2-name',p2);}
+    document.getElementById('logo-title').textContent=`${P1_NAME} & ${P2_NAME}`;
+    const el=document.getElementById('intro');
+    el.style.transition='opacity .4s';el.style.opacity='0';
+    setTimeout(()=>el.style.display='none',420);
+    toast(`♡ Welcome, ${P1_NAME} & ${P2_NAME}. The cosmos awaits.`,'var(--rose)','rgba(255,126,179,.3)');
+  });
+
+  // ── ESC ──
+  window.addEventListener('keydown',e=>{
+    if(e.code==='Escape'&&!document.querySelector('.modal-bg.open')&&document.getElementById('intro').style.display==='none'){
+      setTool('select');galaxy.clearTapChain();
+    }
+  });
+
+  // Load saved names on start
+  if(P1_NAME!=='Beth'||P2_NAME!=='Taka'){
+    document.getElementById('logo-title').textContent=`${P1_NAME} & ${P2_NAME}`;
+  }
+});
+</script>
+</body>
+</html>
